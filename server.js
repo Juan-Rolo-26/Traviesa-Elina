@@ -1,34 +1,12 @@
-// Hostinger-safe bootstrap wrapper.
-// If src/server.js crashes during require, we still bind PORT and expose the error.
+console.log("ROOT SERVER.JS EXECUTED");
 
 const express = require("express");
+const app = express();
 
-function startFallback(error) {
-  const app = express();
-  const port = process.env.PORT || 3000;
+app.get("/", (req, res) => {
+  res.send("ROOT SERVER OK");
+});
 
-  app.get("/api/health", (_req, res) => {
-    res.status(500).json({
-      ok: false,
-      bootstrap: "fallback",
-      error: error?.message || String(error),
-      stack: error?.stack || null,
-    });
-  });
-
-  app.get("*", (_req, res) => {
-    res.status(500).send("App bootstrap failed. Check /api/health for details.");
-  });
-
-  // IMPORTANT: Hostinger requires binding to 0.0.0.0 to avoid 503 from proxy
-  app.listen(port, "0.0.0.0", () => {
-    console.error("Fallback server running on port", port);
-    console.error(error);
-  });
-}
-
-try {
-  require("./src/server");
-} catch (error) {
-  startFallback(error);
-}
+app.listen(process.env.PORT || 3000, "0.0.0.0", () => {
+  console.log("ROOT SERVER LISTENING");
+});

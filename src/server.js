@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require("path");
 
 const testRoutes = require("./routes/test");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/test", testRoutes);
+app.use("/api/auth", authRoutes);
 
 // ===== SERVIR FRONTEND =====
 const FRONTEND_DIST = path.join(__dirname, "..", "frontend", "dist");

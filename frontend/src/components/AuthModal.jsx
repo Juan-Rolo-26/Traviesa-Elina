@@ -19,7 +19,7 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
   });
 
   const [loginForm, setLoginForm] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
@@ -76,7 +76,7 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
     } catch (err) {
       console.error("[auth/login] failed", {
         message: err?.message,
-        username: loginForm.username,
+        email: loginForm.email,
       });
       setError(err.message || "No se pudo iniciar sesion");
     } finally {
@@ -207,10 +207,10 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
             {tab === "login" && (
               <form className="auth-form" onSubmit={handleLogin}>
                 <input
-                  type="text"
-                  placeholder="Nombre de usuario"
-                  value={loginForm.username}
-                  onChange={(event) => setLoginForm((prev) => ({ ...prev, username: event.target.value }))}
+                  type="email"
+                  placeholder="Email"
+                  value={loginForm.email}
+                  onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
                   required
                 />
                 <input

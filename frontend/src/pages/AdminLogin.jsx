@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { loginAdmin } from "../api";
 
 function AdminLogin({ onLogin }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,7 +13,7 @@ function AdminLogin({ onLogin }) {
     setLoading(true);
 
     try {
-      const data = await loginAdmin(username, password);
+      const data = await loginAdmin(email, password);
       onLogin(data.token);
     } catch (err) {
       setError(err.message || "Credenciales invalidas");
@@ -27,10 +27,10 @@ function AdminLogin({ onLogin }) {
       <h2>Login Admin</h2>
       <p className="helper">Acceso solo para usuarios administradores.</p>
       <input
-        type="text"
-        placeholder="Usuario"
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
         required
       />
       <input

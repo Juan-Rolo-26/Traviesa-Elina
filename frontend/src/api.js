@@ -84,16 +84,18 @@ export async function resetPassword(payload) {
   return res.json();
 }
 
-export async function loginAdmin(username, password) {
-  const res = await fetch(`${API_URL}/api/auth/admin/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  if (!res.ok) {
-    return readError(res, "Credenciales invalidas");
+export async function loginAdmin(email, password) {
+  const data = await postJsonWithHandling(
+    "/api/auth/login",
+    { email, password },
+    "Credenciales invalidas"
+  );
+
+  if (data?.user?.role !== "admin") {
+    throw new Error("Este usuario no tiene permisos de administrador");
   }
-  return res.json();
+
+  return data;
 }
 
 export async function fetchAdminStatus(token) {

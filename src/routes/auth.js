@@ -6,7 +6,6 @@ const nodemailer = require("nodemailer");
 const { PrismaClient } = require("@prisma/client");
 const { requireCustomer } = require("../middleware/auth");
 const { JWT_SECRET } = require("../config/jwt");
-const { ensureAdmins } = require("../utils/ensureAdmins");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -15,11 +14,9 @@ const forgotPasswordRate = new Map();
 
 const DEFAULT_ADMIN_USER = {
   email: "eccomfyarg@gmail.com",
-  username: "FranYRolo",
   password: "belgrano23",
+  role: "admin",
 };
-
-let authTableReadyPromise = null;
 
 function trimString(value) {
   return String(value || "").trim();
@@ -41,56 +38,17 @@ function createSixDigitCode() {
   return String(crypto.randomInt(0, 1000000)).padStart(6, "0");
 }
 
-function parseAdminUsers() {
-  const raw = trimString(process.env.ADMIN_USERS);
-  const fromEnv = raw
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .map((entry) => {
-      const [username, password] = entry.split(":");
-      return {
-        username: trimString(username),
-        password: trimString(password),
-      };
-    })
-    .filter((entry) => entry.username && entry.password);
-
-  const dedup = new Map();
-  dedup.set(DEFAULT_ADMIN_USER.username.toLowerCase(), {
-    username: DEFAULT_ADMIN_USER.username,
-    password: DEFAULT_ADMIN_USER.password,
-  });
-
-  for (const item of fromEnv) {
-    dedup.set(item.username.toLowerCase(), item);
-  }
-
-  return Array.from(dedup.values());
-}
-
-function signCustomerToken(customer, username) {
+function signUserToken(user) {
   return jwt.sign(
     {
-      sub: customer.id,
-      id: customer.id,
-      role: "customer",
-      username,
-      email: customer.email,
+      sub: user.id,
+      id: user.id,
+      role: user.role,
+      username: user.username || null,
+      email: user.email,
     },
     JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-}
-
-function signAdminToken(username) {
-  return jwt.sign(
-    {
-      role: "admin",
-      username,
-    },
-    JWT_SECRET,
-    { expiresIn: "8h" }
+    { expiresIn: user.role === "admin" ? "8h" : "7d" }
   );
 }
 
@@ -126,115 +84,54 @@ function isForgotRateLimited(ip, email) {
   return false;
 }
 
-async function ensureAuthTable() {
-  if (!authTableReadyPromise) {
-    authTableReadyPromise = (async () => {
-      await prisma.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS auth_credentials (
-          id TEXT PRIMARY KEY,
-          customer_id TEXT UNIQUE NOT NULL,
-          email TEXT UNIQUE NOT NULL,
-          username TEXT UNIQUE NOT NULL,
-          password_hash TEXT NOT NULL,
-          role TEXT NOT NULL DEFAULT 'customer',
-          reset_code_hash TEXT,
-          reset_code_expires_at INTEGER,
-          reset_code_used INTEGER NOT NULL DEFAULT 0,
-          created_at TEXT NOT NULL DEFAULT (datetime('now'))
-        )
-      `);
-    })().catch((error) => {
-      authTableReadyPromise = null;
-      throw error;
+async function ensureDefaultAdminUser() {
+  try {
+    const existingAdmin = await prisma.customer.findFirst({
+      where: { role: "admin" },
+      select: { id: true },
     });
-  }
 
-  return authTableReadyPromise;
-}
+    if (existingAdmin) {
+      return;
+    }
 
-async function findCredentialByUsername(username) {
-  await ensureAuthTable();
-  const rows = await prisma.$queryRawUnsafe(
-    `
-      SELECT *
-      FROM auth_credentials
-      WHERE lower(username) = lower(?)
-      LIMIT 1
-    `,
-    username
-  );
-  return rows[0] || null;
-}
+    const passwordHash = await bcrypt.hash(DEFAULT_ADMIN_USER.password, 10);
+    const existingByEmail = await prisma.customer.findUnique({
+      where: { email: DEFAULT_ADMIN_USER.email },
+    });
 
-async function findCredentialByEmail(email) {
-  await ensureAuthTable();
-  const rows = await prisma.$queryRawUnsafe(
-    `
-      SELECT *
-      FROM auth_credentials
-      WHERE lower(email) = lower(?)
-      LIMIT 1
-    `,
-    email
-  );
-  return rows[0] || null;
-}
+    if (existingByEmail) {
+      await prisma.customer.update({
+        where: { email: DEFAULT_ADMIN_USER.email },
+        data: {
+          role: "admin",
+          passwordHash,
+          username: existingByEmail.username || "FranYRolo",
+          firstName: existingByEmail.firstName || "FranYRolo",
+        },
+      });
+      return;
+    }
 
-async function ensureDefaultAdminAuthUser() {
-  await ensureAuthTable();
-
-  let customer = await prisma.customer.findUnique({
-    where: { email: DEFAULT_ADMIN_USER.email },
-  });
-
-  if (!customer) {
-    customer = await prisma.customer.create({
+    await prisma.customer.create({
       data: {
         email: DEFAULT_ADMIN_USER.email,
-        firstName: DEFAULT_ADMIN_USER.username,
+        username: "FranYRolo",
+        firstName: "FranYRolo",
+        role: "admin",
+        passwordHash,
       },
     });
-  }
-
-  const existing = await findCredentialByUsername(DEFAULT_ADMIN_USER.username);
-  if (!existing) {
-    const passwordHash = await bcrypt.hash(DEFAULT_ADMIN_USER.password, 10);
-    await prisma.$executeRawUnsafe(
-      `
-        INSERT INTO auth_credentials (
-          id,
-          customer_id,
-          email,
-          username,
-          password_hash,
-          role,
-          reset_code_hash,
-          reset_code_expires_at,
-          reset_code_used
-        )
-        VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, 0)
-      `,
-      crypto.randomUUID(),
-      customer.id,
-      DEFAULT_ADMIN_USER.email,
-      DEFAULT_ADMIN_USER.username,
-      passwordHash,
-      "admin"
-    );
-  }
-}
-
-async function initAuth() {
-  try {
-    await ensureAuthTable();
-    await ensureAdmins();
-    await ensureDefaultAdminAuthUser();
   } catch (error) {
-    console.error("[auth] init warning:", error.message);
+    console.error("[auth] ensureDefaultAdminUser warning", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+    });
   }
 }
 
-initAuth();
+void ensureDefaultAdminUser();
 
 router.post("/register", async (req, res) => {
   try {
@@ -246,29 +143,27 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Email invalido" });
     }
 
-    if (username.length < 3) {
-      return res.status(400).json({ error: "Nombre de usuario invalido" });
-    }
-
     if (password.length < 8) {
       return res.status(400).json({ error: "La contrasena debe tener minimo 8 caracteres" });
     }
 
-    await ensureAuthTable();
+    if (username && username.length < 3) {
+      return res.status(400).json({ error: "Nombre de usuario invalido" });
+    }
 
-    const existingByEmail = await findCredentialByEmail(email);
+    const existingByEmail = await prisma.customer.findUnique({ where: { email } });
     if (existingByEmail) {
       return res.status(409).json({ error: "El email ya existe" });
     }
 
-    const existingByUsername = await findCredentialByUsername(username);
-    if (existingByUsername) {
-      return res.status(409).json({ error: "El nombre de usuario ya existe" });
-    }
-
-    const existingCustomer = await prisma.customer.findUnique({ where: { email } });
-    if (existingCustomer) {
-      return res.status(409).json({ error: "El email ya existe" });
+    if (username) {
+      const existingByUsername = await prisma.customer.findUnique({
+        where: { username },
+        select: { id: true },
+      });
+      if (existingByUsername) {
+        return res.status(409).json({ error: "El nombre de usuario ya existe" });
+      }
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -276,85 +171,122 @@ router.post("/register", async (req, res) => {
     const customer = await prisma.customer.create({
       data: {
         email,
-        firstName: username,
+        username: username || null,
+        firstName: username || null,
+        passwordHash,
+        role: "customer",
       },
     });
 
-    await prisma.$executeRawUnsafe(
-      `
-        INSERT INTO auth_credentials (
-          id,
-          customer_id,
-          email,
-          username,
-          password_hash,
-          role,
-          reset_code_hash,
-          reset_code_expires_at,
-          reset_code_used
-        )
-        VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, 0)
-      `,
-      crypto.randomUUID(),
-      customer.id,
-      email,
-      username,
-      passwordHash,
-      "customer"
-    );
-
-    const token = signCustomerToken(customer, username);
+    const token = signUserToken(customer);
 
     return res.status(201).json({
       token,
       user: {
         id: customer.id,
         email: customer.email,
-        username,
-        role: "customer",
+        username: customer.username,
+        role: customer.role,
       },
     });
   } catch (error) {
+    console.error("[auth/register] error", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+      email: req.body?.email,
+      username: req.body?.username,
+    });
+
+    if (error?.code === "P2002") {
+      return res.status(409).json({ error: "El email o nombre de usuario ya existe" });
+    }
+
     return res.status(500).json({ error: "No se pudo registrar el usuario" });
   }
 });
 
 router.post("/login", async (req, res) => {
   try {
-    const username = trimString(req.body?.username);
+    const email = normalizeEmail(req.body?.email);
     const password = String(req.body?.password || "");
 
-    if (!username || !password) {
+    if (!isValidEmail(email) || !password) {
       return res.status(400).json({ error: "Faltan credenciales" });
     }
 
-    const credential = await findCredentialByUsername(username);
-    if (!credential || credential.role !== "customer") {
+    const user = await prisma.customer.findUnique({ where: { email } });
+    if (!user || !user.passwordHash) {
       return res.status(401).json({ error: "Credenciales invalidas" });
     }
 
-    const ok = await bcrypt.compare(password, credential.password_hash);
+    const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) {
       return res.status(401).json({ error: "Credenciales invalidas" });
     }
 
-    const customer = await prisma.customer.findUnique({ where: { id: credential.customer_id } });
-    if (!customer) {
-      return res.status(401).json({ error: "Usuario no encontrado" });
-    }
+    const token = signUserToken(user);
 
-    const token = signCustomerToken(customer, credential.username);
     return res.json({
       token,
       user: {
-        id: customer.id,
-        email: customer.email,
-        username: credential.username,
-        role: "customer",
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
       },
     });
   } catch (error) {
+    console.error("[auth/login] error", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+      email: req.body?.email,
+    });
+
     return res.status(500).json({ error: "No se pudo iniciar sesion" });
+  }
+});
+
+router.post("/admin/login", async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const password = String(req.body?.password || "");
+
+    if (!isValidEmail(email) || !password) {
+      return res.status(400).json({ error: "Faltan credenciales" });
+    }
+
+    const user = await prisma.customer.findUnique({ where: { email } });
+    if (!user || user.role !== "admin" || !user.passwordHash) {
+      return res.status(401).json({ error: "Credenciales invalidas" });
+    }
+
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ error: "Credenciales invalidas" });
+    }
+
+    const token = signUserToken(user);
+
+    return res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("[auth/admin/login] error", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+      email: req.body?.email,
+    });
+
+    return res.status(500).json({ error: "No se pudo iniciar sesion de admin" });
   }
 });
 
@@ -365,8 +297,8 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(400).json({ error: "Email invalido" });
     }
 
-    const credential = await findCredentialByEmail(email);
-    if (!credential || credential.role !== "customer") {
+    const user = await prisma.customer.findUnique({ where: { email } });
+    if (!user || user.role !== "customer") {
       return res.status(404).json({ error: "El email no existe" });
     }
 
@@ -381,20 +313,16 @@ router.post("/forgot-password", async (req, res) => {
 
     const code = createSixDigitCode();
     const codeHash = hashCode(code);
-    const expiresAt = Date.now() + RESET_CODE_TTL_MS;
+    const expiresAt = new Date(Date.now() + RESET_CODE_TTL_MS);
 
-    await prisma.$executeRawUnsafe(
-      `
-        UPDATE auth_credentials
-        SET reset_code_hash = ?,
-            reset_code_expires_at = ?,
-            reset_code_used = 0
-        WHERE id = ?
-      `,
-      codeHash,
-      expiresAt,
-      credential.id
-    );
+    await prisma.customer.update({
+      where: { email },
+      data: {
+        resetCodeHash: codeHash,
+        resetCodeExpiresAt: expiresAt,
+        resetCodeUsed: false,
+      },
+    });
 
     const transporter = nodemailer.createTransport({
       host: smtp.host,
@@ -425,45 +353,38 @@ router.post("/reset-password/verify", async (req, res) => {
       return res.status(400).json({ error: "Datos invalidos" });
     }
 
-    const credential = await findCredentialByEmail(email);
-    if (!credential || credential.role !== "customer") {
+    const user = await prisma.customer.findUnique({ where: { email } });
+    if (!user || user.role !== "customer") {
       return res.status(400).json({ error: "Codigo invalido o vencido" });
     }
 
-    const expired = !credential.reset_code_expires_at || Number(credential.reset_code_expires_at) < Date.now();
-    const used = Number(credential.reset_code_used) === 1;
-    const expectedHash = credential.reset_code_hash;
+    const expired = !user.resetCodeExpiresAt || user.resetCodeExpiresAt.getTime() < Date.now();
+    const used = Boolean(user.resetCodeUsed);
+    const expectedHash = user.resetCodeHash;
 
     if (!expectedHash || used || expired || hashCode(code) !== expectedHash) {
       return res.status(400).json({ error: "Codigo invalido o vencido" });
     }
 
-    await prisma.$executeRawUnsafe(
-      `
-        UPDATE auth_credentials
-        SET reset_code_used = 1,
-            reset_code_hash = NULL,
-            reset_code_expires_at = NULL
-        WHERE id = ?
-      `,
-      credential.id
-    );
+    await prisma.customer.update({
+      where: { email },
+      data: {
+        resetCodeUsed: true,
+        resetCodeHash: null,
+        resetCodeExpiresAt: null,
+      },
+    });
 
-    const customer = await prisma.customer.findUnique({ where: { id: credential.customer_id } });
-    if (!customer) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
-    }
-
-    const token = signCustomerToken(customer, credential.username);
+    const token = signUserToken(user);
     return res.json({
       ok: true,
       message: "Inicio de sesion exitoso",
       token,
       user: {
-        id: customer.id,
-        email: customer.email,
-        username: credential.username,
-        role: "customer",
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -481,14 +402,14 @@ router.post("/reset-password", async (req, res) => {
       return res.status(400).json({ error: "Datos invalidos" });
     }
 
-    const credential = await findCredentialByEmail(email);
-    if (!credential || credential.role !== "customer") {
+    const user = await prisma.customer.findUnique({ where: { email } });
+    if (!user || user.role !== "customer") {
       return res.status(400).json({ error: "Codigo invalido o vencido" });
     }
 
-    const expired = !credential.reset_code_expires_at || Number(credential.reset_code_expires_at) < Date.now();
-    const used = Number(credential.reset_code_used) === 1;
-    const expectedHash = credential.reset_code_hash;
+    const expired = !user.resetCodeExpiresAt || user.resetCodeExpiresAt.getTime() < Date.now();
+    const used = Boolean(user.resetCodeUsed);
+    const expectedHash = user.resetCodeHash;
 
     if (!expectedHash || used || expired || hashCode(code) !== expectedHash) {
       return res.status(400).json({ error: "Codigo invalido o vencido" });
@@ -496,34 +417,31 @@ router.post("/reset-password", async (req, res) => {
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
-    await prisma.$executeRawUnsafe(
-      `
-        UPDATE auth_credentials
-        SET password_hash = ?,
-            reset_code_used = 1,
-            reset_code_hash = NULL,
-            reset_code_expires_at = NULL
-        WHERE id = ?
-      `,
-      passwordHash,
-      credential.id
-    );
+    await prisma.customer.update({
+      where: { email },
+      data: {
+        passwordHash,
+        resetCodeUsed: true,
+        resetCodeHash: null,
+        resetCodeExpiresAt: null,
+      },
+    });
 
-    const customer = await prisma.customer.findUnique({ where: { id: credential.customer_id } });
-    if (!customer) {
+    const refreshedUser = await prisma.customer.findUnique({ where: { email } });
+    if (!refreshedUser) {
       return res.status(400).json({ error: "Usuario no encontrado" });
     }
 
-    const token = signCustomerToken(customer, credential.username);
+    const token = signUserToken(refreshedUser);
     return res.json({
       ok: true,
       message: "Inicio de sesion exitoso",
       token,
       user: {
-        id: customer.id,
-        email: customer.email,
-        username: credential.username,
-        role: "customer",
+        id: refreshedUser.id,
+        email: refreshedUser.email,
+        username: refreshedUser.username,
+        role: refreshedUser.role,
       },
     });
   } catch (error) {
@@ -531,49 +449,8 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-router.post("/admin/login", async (req, res) => {
-  try {
-    const username = trimString(req.body?.username);
-    const password = String(req.body?.password || "");
-
-    if (!username || !password) {
-      return res.status(400).json({ error: "Faltan credenciales" });
-    }
-
-    const adminFromEnv = parseAdminUsers().find(
-      (entry) => entry.username.toLowerCase() === username.toLowerCase()
-    );
-
-    if (adminFromEnv && adminFromEnv.password === password) {
-      const token = signAdminToken(adminFromEnv.username);
-      return res.json({
-        token,
-        user: { username: adminFromEnv.username, role: "admin" },
-      });
-    }
-
-    const admin = await prisma.admin.findUnique({ where: { username } });
-    if (admin) {
-      const ok = await bcrypt.compare(password, admin.passwordHash);
-      if (ok) {
-        const token = signAdminToken(admin.username);
-        return res.json({
-          token,
-          user: { username: admin.username, role: "admin" },
-        });
-      }
-    }
-
-    return res.status(401).json({ error: "Credenciales invalidas" });
-  } catch (error) {
-    return res.status(500).json({ error: "No se pudo iniciar sesion de admin" });
-  }
-});
-
 router.get("/admin-status", requireCustomer, (req, res) => {
-  const username = trimString(req.customer?.username).toLowerCase();
-  const adminSet = new Set(parseAdminUsers().map((item) => item.username.toLowerCase()));
-  return res.json({ isAdmin: adminSet.has(username) });
+  return res.json({ isAdmin: req.customer?.role === "admin" });
 });
 
 router.get("/me", requireCustomer, async (req, res) => {
@@ -583,21 +460,10 @@ router.get("/me", requireCustomer, async (req, res) => {
     return res.status(404).json({ error: "Usuario no encontrado" });
   }
 
-  await ensureAuthTable();
-  const credential = await prisma.$queryRawUnsafe(
-    `
-      SELECT username
-      FROM auth_credentials
-      WHERE customer_id = ?
-      LIMIT 1
-    `,
-    customerId
-  );
-
   return res.json({
     customer: {
       ...customer,
-      username: credential[0]?.username || req.customer?.username || null,
+      username: customer.username || customer.firstName || null,
     },
   });
 });

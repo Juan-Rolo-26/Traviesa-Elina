@@ -19,6 +19,12 @@ model Admin {
 model Customer {
   id                   String               @id @default(cuid())
   email                String               @unique
+  username             String?              @unique
+  passwordHash         String?
+  role                 String               @default("customer")
+  resetCodeHash        String?
+  resetCodeExpiresAt   DateTime?
+  resetCodeUsed        Boolean              @default(false)
   firstName            String?
   lastName             String?
   province             String?

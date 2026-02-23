@@ -179,6 +179,11 @@ function App() {
     localStorage.setItem("customerToken", data.token);
     setCustomerToken(data.token);
     setCustomerProfile(data.user || null);
+    if (data?.user?.role === "admin") {
+      localStorage.setItem("adminToken", data.token);
+      setAdminToken(data.token);
+      navigate("/admin");
+    }
     setAuthToast(message || "Inicio de sesion exitoso");
     setTimeout(() => setAuthToast(null), 2500);
   };

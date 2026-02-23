@@ -57,7 +57,7 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
         </button>
       )}
       <Link to={`/producto/${product.id}`} className="card-link">
-        <img src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${product.image}`} alt={product.name} />
+        <img src={product.image} alt={product.name} />
       </Link>
       <div>
         <Link to={`/producto/${product.id}`} className="card-link">

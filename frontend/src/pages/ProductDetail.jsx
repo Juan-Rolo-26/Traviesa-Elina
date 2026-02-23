@@ -95,18 +95,18 @@ function ProductDetail({ onAdd }) {
                 onClick={() => setSelected(index)}
               >
                 {item.type === "video" ? (
-                  <video src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${item.url}`} muted />
+                  <video src={item.url} muted />
                 ) : (
-                  <img src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${item.url}`} alt={product.name} />
+                  <img src={item.url} alt={product.name} />
                 )}
               </button>
             ))}
           </div>
           <div className="product-main">
             {selectedMedia?.type === "video" ? (
-              <video src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${selectedMedia.url}`} controls />
+              <video src={selectedMedia.url} controls />
             ) : (
-              <img src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${selectedMedia?.url}`} alt={product.name} />
+              <img src={selectedMedia?.url} alt={product.name} />
             )}
           </div>
         </div>

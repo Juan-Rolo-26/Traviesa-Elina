@@ -16,7 +16,7 @@ const GRID_COLS = 2;
 const CELL_HEIGHT = 120;
 const GRID_GAP = 10;
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = "";
 
 function AdminPanel({ token, onLogout }) {
   const [form, setForm] = useState(initialState);

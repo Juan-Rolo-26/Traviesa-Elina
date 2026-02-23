@@ -99,7 +99,7 @@ function App() {
     if (!lotIconRef.current || !event) return;
     const lotRect = lotIconRef.current.getBoundingClientRect();
     const img = document.createElement("img");
-    img.src = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${product.image}`;
+    img.src = product.image;
     img.className = "lot-fly";
     const startX = event.clientX;
     const startY = event.clientY;
@@ -144,7 +144,7 @@ function App() {
           name: product.name,
           price: product.price,
           quantity: safeQty,
-          image: `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${product.image}`,
+          image: product.image,
           width: product.width,
           height: product.height,
           weight: product.weight,

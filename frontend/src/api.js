@@ -1,32 +1,51 @@
 const API_URL = "";
+const AUTH_TIMEOUT_MS = 12000;
 
 async function readError(res, fallback) {
   const data = await res.json().catch(() => ({}));
   throw new Error(data.error || fallback);
 }
 
-export async function registerCustomer(payload) {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    return readError(res, "No se pudo registrar");
+async function postJsonWithHandling(path, payload, fallbackError) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    let body = {};
+    try {
+      body = await res.json();
+    } catch (_) {
+      body = {};
+    }
+
+    if (!res.ok) {
+      throw new Error(body.error || fallbackError);
+    }
+
+    return body;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("La solicitud demoro demasiado. Intenta de nuevo.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return res.json();
+}
+
+export async function registerCustomer(payload) {
+  return postJsonWithHandling("/api/auth/register", payload, "No se pudo registrar");
 }
 
 export async function loginCustomer(payload) {
-  const res = await fetch(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    return readError(res, "Credenciales invalidas");
-  }
-  return res.json();
+  return postJsonWithHandling("/api/auth/login", payload, "Credenciales invalidas");
 }
 
 export async function forgotPassword(payload) {

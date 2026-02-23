@@ -54,6 +54,11 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
       onAuthSuccess(data, "Registro exitoso");
       onClose();
     } catch (err) {
+      console.error("[auth/register] failed", {
+        message: err?.message,
+        email: registerForm.email,
+        username: registerForm.username,
+      });
       setError(err.message || "No se pudo registrar");
     } finally {
       setLoading(false);
@@ -69,6 +74,10 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
       onAuthSuccess(data, "Inicio de sesion exitoso");
       onClose();
     } catch (err) {
+      console.error("[auth/login] failed", {
+        message: err?.message,
+        username: loginForm.username,
+      });
       setError(err.message || "No se pudo iniciar sesion");
     } finally {
       setLoading(false);

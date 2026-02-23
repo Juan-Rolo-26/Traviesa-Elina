@@ -1,5 +1,3 @@
-console.log("ENV GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
-
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -10,14 +8,14 @@ const { JWT_SECRET } = require("../config/jwt");
 
 const router = express.Router();
 const prisma = new PrismaClient();
-const GOOGLE_CLIENT_ID =
-  process.env.GOOGLE_CLIENT_ID ||
-  process.env.VITE_GOOGLE_CLIENT_ID ||
-  null;
 
-if (!GOOGLE_CLIENT_ID) {
-  console.warn("⚠️ GOOGLE_CLIENT_ID not defined at startup");
+function getGoogleClientId() {
+  const googleClientId = String(
+    process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || ""
+  ).trim();
+  return googleClientId.length > 0 ? googleClientId : null;
 }
+
 const DEFAULT_ADMIN_GOOGLE_EMAILS = ["eccomfyarg@gmail.com"];
 const adminEmailSet = new Set(
   [
@@ -58,16 +56,22 @@ router.post("/google", async (req, res) => {
   if (!idToken) {
     return res.status(400).json({ error: "Missing idToken" });
   }
-  console.log("GOOGLE_CLIENT_ID resolved:", GOOGLE_CLIENT_ID);
-  if (!GOOGLE_CLIENT_ID) {
+
+  const googleClientId = getGoogleClientId();
+  const googleClientIdLen = googleClientId ? googleClientId.length : 0;
+  console.log(
+    `AUTH/GOOGLE env check: GOOGLE_CLIENT_ID present=${Boolean(googleClientId)} len=${googleClientIdLen}`
+  );
+
+  if (!googleClientId) {
     return res.status(500).json({ error: "Google client ID not configured" });
   }
 
   try {
-    const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+    const googleClient = new OAuth2Client(googleClientId);
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: GOOGLE_CLIENT_ID,
+      audience: googleClientId,
     });
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
@@ -117,14 +121,15 @@ router.post("/google-admin", async (req, res) => {
   if (!idToken) {
     return res.status(400).json({ error: "Missing idToken" });
   }
-  if (!GOOGLE_CLIENT_ID) {
+  const googleClientId = getGoogleClientId();
+  if (!googleClientId) {
     return res.status(500).json({ error: "Google client ID not configured" });
   }
   try {
-    const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+    const googleClient = new OAuth2Client(googleClientId);
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: GOOGLE_CLIENT_ID,
+      audience: googleClientId,
     });
     const payload = ticket.getPayload();
     const email = payload?.email?.toLowerCase();

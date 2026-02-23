@@ -48,3 +48,10 @@ Frontend (`frontend/.env`):
 - Los productos con stock 0 se eliminan automaticamente.
 - Checkout sin registro.
 - Mercado Pago y Correo Argentino quedan preparados como servicios separados.
+
+## Diagnostico de entorno (produccion)
+- Configurar `DIAG_KEY` en las variables de entorno de Hostinger.
+- Probar:
+```bash
+curl -H "x-diag-key: <valor>" https://traviesa.shop/api/_diag/env
+```

@@ -8,7 +8,14 @@ const { JWT_SECRET } = require("../config/jwt");
 
 const router = express.Router();
 const prisma = new PrismaClient();
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID =
+  process.env.GOOGLE_CLIENT_ID ||
+  process.env.VITE_GOOGLE_CLIENT_ID ||
+  null;
+
+if (!GOOGLE_CLIENT_ID) {
+  console.warn("⚠️ GOOGLE_CLIENT_ID not defined at startup");
+}
 const DEFAULT_ADMIN_GOOGLE_EMAILS = ["eccomfyarg@gmail.com"];
 const adminEmailSet = new Set(
   [

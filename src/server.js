@@ -1,11 +1,14 @@
 process.on("uncaughtException", (err) => {
-  console.error("UNCAUGHT EXCEPTION:", err);
+  console.error("💥 UNCAUGHT EXCEPTION at startup:", err.stack || err);
+  process.exit(1);
 });
 
-process.on("unhandledRejection", (reason) => {
-  console.error("UNHANDLED REJECTION:", reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("💥 UNHANDLED REJECTION at startup:", reason.stack || reason);
+  process.exit(1);
 });
 
+try {
 console.log("🔥🔥🔥 SERVER BOOT VERSION 2026-02-19 🔥🔥🔥");
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
@@ -91,8 +94,6 @@ bootLog(`NODE_ENV=${process.env.NODE_ENV || "undefined"} PORT=${process.env.PORT
 bootLog(`cwd=${process.cwd()}`);
 bootLog(`FRONTEND_DIST=${FRONTEND_DIST} exists=${fs.existsSync(FRONTEND_DIST)}`);
 bootLog(`DATABASE_URL exists=${Boolean(process.env.DATABASE_URL)}`);
-process.on("uncaughtException", (error) => bootLog("uncaughtException", error));
-process.on("unhandledRejection", (reason) => bootLog("unhandledRejection", reason));
 
 try {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -282,15 +283,11 @@ async function bootstrap() {
   });
 }
 
-try {
-  setInterval(() => {
-    console.log("ALIVE:", new Date().toISOString());
-  }, 10000);
+setInterval(() => {
+  console.log("ALIVE:", new Date().toISOString());
+}, 10000);
 
-  bootstrap();
-} catch (err) {
-  console.error("BOOTSTRAP FAILED:", err);
-}
+bootstrap();
 
 process.on("SIGTERM", async () => {
   try {
@@ -305,3 +302,7 @@ process.on("SIGINT", async () => {
   } catch {}
   process.exit(0);
 });
+} catch (err) {
+  console.error("🔥 SERVER FAILED TO START:", err.stack || err);
+  process.exit(1);
+}

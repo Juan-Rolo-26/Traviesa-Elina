@@ -1,35 +1,11 @@
 {
   "name": "tienda-mabel-backend",
   "version": "1.0.0",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
-    "build": "echo \"Backend build OK\"",
-    "dev": "nodemon src/server.js",
-    "start": "node server.js",
-    "postinstall": "node node_modules/prisma/build/index.js generate && npm --prefix frontend install && npm --prefix frontend run build",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "API REST for Tienda Mabel",
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "@prisma/client": "5.22.0",
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.6",
-    "dotenv": "^17.2.4",
-    "express": "^5.2.1",
-    "google-auth-library": "^9.15.1",
-    "jsonwebtoken": "^9.0.3",
-    "mercadopago": "^2.12.0",
-    "multer": "^2.0.2",
-    "prisma": "5.22.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.11"
   }
 }

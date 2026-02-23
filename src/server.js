@@ -283,6 +283,10 @@ async function bootstrap() {
 }
 
 try {
+  setInterval(() => {
+    console.log("ALIVE:", new Date().toISOString());
+  }, 10000);
+
   bootstrap();
 } catch (err) {
   console.error("BOOTSTRAP FAILED:", err);

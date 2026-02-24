@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "prisma migrate deploy && node server.js",
     "postinstall": "npm --prefix frontend install && npm --prefix frontend run build"
   },
   "dependencies": {

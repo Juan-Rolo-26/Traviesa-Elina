@@ -12,6 +12,18 @@ import logo from "./assets/logo.png";
 import routeLoaderAnimation from "./assets/route-loader.json";
 import AuthModal from "./components/AuthModal";
 import { fetchCustomer } from "./api";
+
+function parseJwtPayload(token) {
+  try {
+    const [, payload] = String(token || "").split(".");
+    if (!payload) return null;
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(json);
+  } catch (_) {
+    return null;
+  }
+}
+
 function formatLocation(profile) {
   if (!profile?.address1) return "Agregar ubicacion";
   const line = [profile.address1, profile.city, profile.province].filter(Boolean).join(" · ");
@@ -71,21 +83,49 @@ function App() {
   React.useEffect(() => {
     if (!customerToken) {
       setCustomerProfile(null);
-      setCustomerIsAdmin(Boolean(adminToken));
+      setCustomerIsAdmin(false);
+      localStorage.removeItem("customerIsAdmin");
       return;
     }
     fetchCustomer(customerToken)
       .then((data) => {
-        setCustomerProfile(data.customer);
+        const profile = data?.customer || null;
+        const isAdmin = profile?.role === "admin";
+        setCustomerProfile(profile);
+        setCustomerIsAdmin(isAdmin);
+        localStorage.setItem("customerIsAdmin", isAdmin ? "true" : "false");
+        if (isAdmin) {
+          localStorage.setItem("adminToken", customerToken);
+          setAdminToken(customerToken);
+        } else {
+          localStorage.removeItem("adminToken");
+          setAdminToken(null);
+        }
       })
       .catch(() => {
+        const jwtData = parseJwtPayload(customerToken);
+        if (jwtData?.role === "admin") {
+          const fallbackProfile = {
+            id: jwtData.id || jwtData.sub || null,
+            email: jwtData.email || "",
+            username: jwtData.username || "",
+            role: "admin",
+          };
+          setCustomerProfile(fallbackProfile);
+          setCustomerIsAdmin(true);
+          localStorage.setItem("customerIsAdmin", "true");
+          localStorage.setItem("adminToken", customerToken);
+          setAdminToken(customerToken);
+          return;
+        }
         localStorage.removeItem("auth_token");
         localStorage.removeItem("customerToken");
+        localStorage.removeItem("customerIsAdmin");
         setCustomerToken(null);
+        setCustomerProfile(null);
+        setCustomerIsAdmin(false);
       });
-    setCustomerIsAdmin(Boolean(adminToken));
-    localStorage.setItem("customerIsAdmin", adminToken ? "true" : "false");
-  }, [customerToken, adminToken]);
+  }, [customerToken]);
 
   const lotCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
@@ -166,7 +206,15 @@ function App() {
 
   const handleLogin = (token) => {
     localStorage.setItem("adminToken", token);
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem("customerToken", token);
+    localStorage.setItem("customerIsAdmin", "true");
     setAdminToken(token);
+    setCustomerToken(token);
+    setCustomerIsAdmin(true);
+    setAuthToast("Inicio de sesion exitoso");
+    setTimeout(() => setAuthToast(null), 2500);
+    navigate("/");
   };
 
   const handleLogout = () => {
@@ -179,20 +227,28 @@ function App() {
     localStorage.setItem("customerToken", data.token);
     setCustomerToken(data.token);
     setCustomerProfile(data.user || null);
-    if (data?.user?.role === "admin") {
+    const isAdmin = data?.user?.role === "admin";
+    if (isAdmin) {
       localStorage.setItem("adminToken", data.token);
       setAdminToken(data.token);
-      navigate("/admin");
+    } else {
+      localStorage.removeItem("adminToken");
+      setAdminToken(null);
     }
+    setCustomerIsAdmin(isAdmin);
+    localStorage.setItem("customerIsAdmin", isAdmin ? "true" : "false");
     setAuthToast(message || "Inicio de sesion exitoso");
     setTimeout(() => setAuthToast(null), 2500);
+    navigate("/");
   };
 
   const handleCustomerLogout = () => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("customerToken");
     localStorage.removeItem("customerIsAdmin");
+    localStorage.removeItem("adminToken");
     setCustomerToken(null);
+    setAdminToken(null);
     setCustomerProfile(null);
     setCustomerIsAdmin(false);
   };

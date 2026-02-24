@@ -302,6 +302,12 @@ button {
   margin-bottom: 16px;
 }
 
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .toast {
   position: fixed;
   bottom: 24px;

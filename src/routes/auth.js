@@ -289,6 +289,11 @@ router.post("/admin/login", async (req, res) => {
   }
 });
 
+router.get("/debug-users", async (req, res) => {
+  const users = await prisma.customer.findMany();
+  res.json(users);
+});
+
 router.post("/forgot-password", async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email);

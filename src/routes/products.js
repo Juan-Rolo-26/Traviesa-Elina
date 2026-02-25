@@ -50,20 +50,37 @@ function ensureCoverIsImage(mediaItems) {
 }
 
 router.get("/", async (req, res) => {
-  const products = await prisma.product.findMany({
-    where: { stock: { gt: 0 } },
-    orderBy: { createdAt: "desc" },
-    include: { media: true },
-  });
-
-  res.json(products.map(normalizeProduct));
+  try {
+    const products = await prisma.product.findMany({
+      where: { stock: { gt: 0 } },
+      orderBy: { createdAt: "desc" },
+      include: { media: true },
+    });
+    return res.json(products.map(normalizeProduct));
+  } catch (error) {
+    console.error("[products/list] error", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+    });
+    return res.status(500).json({ error: "No se pudieron cargar productos" });
+  }
 });
 
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
-  const product = await prisma.product.findUnique({ where: { id }, include: { media: true } });
-  if (!product) return res.status(404).json({ error: "Not found" });
-  res.json(normalizeProduct(product));
+  try {
+    const { id } = req.params;
+    const product = await prisma.product.findUnique({ where: { id }, include: { media: true } });
+    if (!product) return res.status(404).json({ error: "Not found" });
+    return res.json(normalizeProduct(product));
+  } catch (error) {
+    console.error("[products/detail] error", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+    });
+    return res.status(500).json({ error: "No se pudo cargar el producto" });
+  }
 });
 
 router.post("/", requireAdmin, upload.array("media", 10), async (req, res) => {

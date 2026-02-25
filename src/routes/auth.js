@@ -51,6 +51,14 @@ function signUserToken(user) {
   );
 }
 
+function hasDiagAccess(req) {
+  const configuredKey = trimString(process.env.DIAG_KEY);
+  if (!configuredKey) return false;
+  const headerKey = trimString(req.headers["x-diag-key"]);
+  const queryKey = trimString(req.query?.key);
+  return configuredKey === headerKey || configuredKey === queryKey;
+}
+
 function smtpConfigFromEnv() {
   const host = trimString(process.env.SMTP_HOST);
   const portRaw = trimString(process.env.SMTP_PORT);
@@ -243,6 +251,18 @@ router.post("/login", async (req, res) => {
       email: req.body?.email,
     });
 
+    if (hasDiagAccess(req)) {
+      return res.status(500).json({
+        error: "No se pudo iniciar sesion",
+        debug: {
+          message: error?.message || "unknown",
+          code: error?.code || null,
+          meta: error?.meta || null,
+          jwtSecretPresent: Boolean(trimString(process.env.JWT_SECRET)),
+        },
+      });
+    }
+
     return res.status(500).json({ error: "No se pudo iniciar sesion" });
   }
 });
@@ -290,8 +310,31 @@ router.post("/admin/login", async (req, res) => {
 });
 
 router.get("/debug-users", async (req, res) => {
-  const users = await prisma.customer.findMany();
-  res.json(users);
+  if (!hasDiagAccess(req)) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  try {
+    const users = await prisma.customer.findMany({
+      select: { id: true, email: true, role: true, username: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+    return res.json({ count: users.length, users });
+  } catch (error) {
+    console.error("[auth/debug-users] error", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+    });
+    return res.status(500).json({
+      error: "No se pudo listar usuarios",
+      debug: {
+        message: error?.message || "unknown",
+        code: error?.code || null,
+        meta: error?.meta || null,
+      },
+    });
+  }
 });
 
 router.post("/forgot-password", async (req, res) => {

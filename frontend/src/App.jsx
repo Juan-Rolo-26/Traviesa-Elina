@@ -24,7 +24,14 @@ function App() {
   const [customerToken, setCustomerToken] = useState(
     () => localStorage.getItem("auth_token") || localStorage.getItem("customerToken")
   );
-  const [customerProfile, setCustomerProfile] = useState(null);
+  const [customerProfile, setCustomerProfile] = useState(() => {
+    try {
+      const raw = localStorage.getItem("customerProfile");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
   const [customerIsAdmin, setCustomerIsAdmin] = useState(() => localStorage.getItem("customerIsAdmin") === "true");
   const [authOpen, setAuthOpen] = useState(false);
   const [authToast, setAuthToast] = useState(null);
@@ -74,13 +81,28 @@ function App() {
       setCustomerIsAdmin(Boolean(adminToken));
       return;
     }
+
+    // Admin authenticated through customer flow uses the same token for both roles.
+    // Skip /customers/me because that endpoint is customer-only and returns 403 for admin tokens.
+    if (adminToken && customerToken === adminToken) {
+      setCustomerIsAdmin(true);
+      localStorage.setItem("customerIsAdmin", "true");
+      return;
+    }
+
     fetchCustomer(customerToken)
       .then((data) => {
         setCustomerProfile(data.customer);
+        localStorage.setItem("customerProfile", JSON.stringify(data.customer));
       })
       .catch(() => {
+        if (adminToken && customerToken === adminToken) {
+          setCustomerIsAdmin(true);
+          return;
+        }
         localStorage.removeItem("auth_token");
         localStorage.removeItem("customerToken");
+        localStorage.removeItem("customerProfile");
         setCustomerToken(null);
       });
     setCustomerIsAdmin(Boolean(adminToken));
@@ -179,10 +201,13 @@ function App() {
     localStorage.setItem("customerToken", data.token);
     setCustomerToken(data.token);
     setCustomerProfile(data.user || null);
+    localStorage.setItem("customerProfile", JSON.stringify(data.user || null));
     if (data?.user?.role === "admin") {
       localStorage.setItem("adminToken", data.token);
       setAdminToken(data.token);
-      navigate("/admin");
+    } else {
+      localStorage.removeItem("adminToken");
+      setAdminToken(null);
     }
     setAuthToast(message || "Inicio de sesion exitoso");
     setTimeout(() => setAuthToast(null), 2500);
@@ -192,6 +217,9 @@ function App() {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("customerToken");
     localStorage.removeItem("customerIsAdmin");
+    localStorage.removeItem("customerProfile");
+    localStorage.removeItem("adminToken");
+    setAdminToken(null);
     setCustomerToken(null);
     setCustomerProfile(null);
     setCustomerIsAdmin(false);

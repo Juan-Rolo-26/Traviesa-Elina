@@ -17,16 +17,19 @@ function safeEqual(a, b) {
 }
 
 function resolveMabelPassword() {
-  return trimString(process.env.MABEL_PASSWORD);
+  const primary = trimString(process.env.MABEL_PASSWORD);
+  if (primary) return primary;
+
+  const fallbackEnv = trimString(process.env.MABEL_PASSWORD_FALLBACK);
+  if (fallbackEnv) return fallbackEnv;
+
+  // Temporary emergency fallback for hosts that fail to inject runtime env vars.
+  return "Mabel2026";
 }
 
 router.post("/unlock", (req, res) => {
   const expected = resolveMabelPassword();
   const provided = trimString(req.body?.password);
-
-  if (!expected) {
-    return res.status(503).json({ error: "Mabel password not configured" });
-  }
 
   if (!provided || !safeEqual(provided, expected)) {
     return res.status(401).json({ error: "Contrasena incorrecta" });

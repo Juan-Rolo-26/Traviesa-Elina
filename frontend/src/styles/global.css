@@ -1668,28 +1668,16 @@ body {
 }
 
 /* ===== Modo Mabel: barra simplificada ===== */
-.mabel-exit-btn {
-  border: 1px solid #8f7f84;
-  background: #fff;
-  color: #2f2f2f;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-}
-
-.mabel-exit-btn:hover {
-  background: #f6eef1;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(38, 32, 36, 0.14);
-}
-
-.mabel-add-btn {
+.mabel-actions-row {
   position: absolute;
   right: 26px;
   bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mabel-action-btn {
   border: 1px solid #8f7f84;
   background: #fff;
   color: #2f2f2f;
@@ -1698,20 +1686,27 @@ body {
   font-size: 16px;
   font-weight: 500;
   line-height: 1;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  white-space: nowrap;
   transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
-.mabel-add-btn:hover {
+.mabel-action-btn:hover {
   background: #f6eef1;
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(38, 32, 36, 0.14);
 }
 
 @media (max-width: 920px) {
-  .mabel-add-btn {
+  .mabel-actions-row {
     position: static;
     margin-top: 8px;
-    width: fit-content;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 

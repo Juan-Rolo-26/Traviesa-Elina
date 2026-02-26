@@ -265,16 +265,16 @@ function App() {
               </div>
             )}
           </div>
-          {isMabelMode && (
-            <button className="mabel-exit-btn" type="button" onClick={handleMabelLogout}>
-              Salir modo Mabel
-            </button>
-          )}
         </nav>
         {isMabelMode && (
-          <NavLink className="mabel-add-btn" to="/admin">
-            Agregar producto
-          </NavLink>
+          <div className="mabel-actions-row">
+            <NavLink className="mabel-action-btn" to="/admin">
+              Agregar producto
+            </NavLink>
+            <button className="mabel-action-btn" type="button" onClick={handleMabelLogout}>
+              Salir modo Mabel
+            </button>
+          </div>
         )}
       </header>
 

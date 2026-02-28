@@ -1294,24 +1294,28 @@ body {
 
 .ml-header {
   position: relative;
-  min-height: 182px;
+  min-height: 160px;
   padding: 6px 24px 8px;
 }
 
 .ml-top {
   display: block;
+  height: 0;
 }
 
 .ml-brand-block {
-  width: 415px;
+  width: 420px;
   gap: 4px;
 }
 
 .ml-logo-link {
-  width: 378px;
-  height: 218px;
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: 395px;
+  height: 228px;
   overflow: visible;
-  transform: translateY(-4px);
+  transform: none;
 }
 
 .ml-logo-img {
@@ -1323,16 +1327,16 @@ body {
 
 .ml-search-wrap {
   position: absolute;
-  left: 392px;
+  left: 424px;
   right: 440px;
-  bottom: 74px;
+  bottom: 60px;
   margin-top: 0;
 }
 
 .ml-nav-row {
   position: absolute;
   right: 24px;
-  bottom: 78px;
+  bottom: 64px;
   padding-left: 0;
 }
 

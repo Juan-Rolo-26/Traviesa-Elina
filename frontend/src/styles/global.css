@@ -2005,93 +2005,77 @@ body {
 }
 
 /* =============================================
-   RESPONSIVE — Tablet (769–1199px) y Mobile (≤768px)
-   Desktop (>1199px) queda completamente intacto
+   RESPONSIVE FLUIDO
+   - Desktop > 1279px: sin ningún cambio
+   - Todo lo demás: layout fluido, sin cortes
    ============================================= */
 
-/* ---------- Tablet: 769px – 1199px ---------- */
-@media (min-width: 769px) and (max-width: 1199px) {
+/* Sin scroll horizontal en cualquier tamaño */
+html {
+  overflow-x: hidden;
+}
+
+/* Prevenir que celdas de grid desborden */
+.card,
+.ml-search-wrap,
+.ml-top {
+  min-width: 0;
+}
+
+/* -----------------------------------------------
+   GRILLA DE PRODUCTOS — fluida, sin breakpoints
+   Calcula columnas según el espacio disponible.
+   min(180px, 50%-8px) garantiza siempre ≥2 cols.
+   El max natural es 6 en desktop (hereda el grid
+   explícito de arriba; auto-fill entra solo abajo
+   de 1200px donde el contenedor ya no da para 6).
+   ----------------------------------------------- */
+@media (max-width: 1199px) {
   .container {
     padding: 0 20px 24px;
   }
 
-  /* Header */
-  .ml-header {
-    min-height: auto;
-    padding: 14px 20px 12px;
-  }
-
-  .ml-top {
-    height: auto;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .ml-brand-block {
-    width: auto;
-    flex-shrink: 0;
-  }
-
-  .ml-logo-link {
-    position: static;
-    transform: none;
-    width: 175px;
-    height: 106px;
-  }
-
-  .ml-search-wrap {
-    position: static;
-    flex: 1;
-    margin-top: 0;
-  }
-
-  .ml-nav-row {
-    position: static;
-    padding-left: 0;
-    justify-content: flex-end;
-    margin-top: 8px;
-  }
-
-  .mabel-actions-row {
-    position: static;
-    margin-top: 8px;
-    justify-content: flex-start;
-  }
-
-  /* Grid de productos */
   .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  /* Producto detalle */
-  .product-view {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(180px, calc(50% - 8px)), 1fr)
+    );
   }
 
   .related-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(160px, calc(50% - 8px)), 1fr)
+    );
   }
 }
 
-/* ---------- Mobile: ≤ 768px ---------- */
-@media (max-width: 768px) {
-  .container {
-    padding: 0 12px 20px;
-  }
-
-  /* Header */
+/* -----------------------------------------------
+   HEADER — fluido desde 1279px hacia abajo.
+   Abandona el layout absoluto del desktop y usa
+   flexbox puro. Todo escala con clamp() y flex:1.
+   ----------------------------------------------- */
+@media (max-width: 1279px) {
   .ml-header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 6px;
     min-height: auto;
-    padding: 10px 14px 8px;
+    padding: 10px 20px;
   }
 
+  /* ml-top ocupa todo el espacio disponible junto al nav */
   .ml-top {
-    height: auto;
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    height: auto;
   }
 
   .ml-brand-block {
@@ -2099,11 +2083,13 @@ body {
     flex-shrink: 0;
   }
 
+  /* Logo escala fluidamente con el viewport */
   .ml-logo-link {
     position: static;
     transform: none;
-    width: 120px;
-    height: 72px;
+    width: clamp(88px, 12vw, 180px);
+    height: clamp(52px, 7.2vw, 108px);
+    overflow: visible;
   }
 
   .ml-logo-img {
@@ -2113,40 +2099,75 @@ body {
     object-position: left center;
   }
 
+  /* Buscador ocupa todo el espacio restante */
   .ml-search-wrap {
     position: static;
     flex: 1;
+    min-width: 0;
     margin-top: 0;
   }
 
   .ml-search-input {
-    font-size: 15px;
-    padding: 9px 12px;
+    font-size: clamp(14px, 1.4vw, 20px);
+    padding: 10px 14px;
   }
 
+  /* Nav a la derecha, no se encoge */
   .ml-nav-row {
     position: static;
     padding-left: 0;
-    margin-top: 6px;
-    justify-content: flex-start;
-    gap: 16px;
+    flex-shrink: 0;
+    align-items: center;
+    gap: clamp(10px, 1.4vw, 18px);
+    margin-top: 0;
+    flex-wrap: nowrap;
   }
 
   .ml-nav-row .nav-link {
-    font-size: 14px;
+    font-size: clamp(13px, 1.3vw, 17px);
   }
 
+  /* Botones Mabel van en su propia fila */
   .mabel-actions-row {
     position: static;
-    margin-top: 8px;
-    justify-content: flex-start;
+    width: 100%;
     flex-wrap: wrap;
+    margin-top: 0;
+  }
+}
+
+/* -----------------------------------------------
+   MOBILE ≤ 600px — ajustes adicionales de densidad
+   ----------------------------------------------- */
+@media (max-width: 600px) {
+  .container {
+    padding: 0 12px 20px;
   }
 
-  /* Grid de productos */
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+  .ml-header {
+    padding: 8px 12px;
+    column-gap: 8px;
+    row-gap: 4px;
+  }
+
+  /* Logo aún más compacto */
+  .ml-logo-link {
+    width: clamp(76px, 22vw, 120px);
+    height: clamp(46px, 13.2vw, 72px);
+  }
+
+  /* Font-size ≥16px para evitar zoom en iOS */
+  .ml-search-input {
+    font-size: 16px;
+    padding: 8px 10px;
+  }
+
+  .ml-nav-row {
+    gap: 12px;
+  }
+
+  .ml-nav-row .nav-link {
+    font-size: 13px;
   }
 
   /* Cards */
@@ -2156,10 +2177,10 @@ body {
   }
 
   .card img {
-    height: 150px;
+    height: 140px;
   }
 
-  /* Producto detalle */
+  /* Producto detalle: una columna */
   .product-view {
     grid-template-columns: 1fr;
   }
@@ -2175,38 +2196,22 @@ body {
   }
 
   .product-thumbs .thumb {
-    width: 60px;
+    width: 56px;
   }
 
   .product-thumbs img,
   .product-thumbs video {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
   }
 
   .product-main img,
   .product-main video {
-    height: 280px;
-  }
-
-  .related-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: 260px;
   }
 
   /* Checkout */
   .button-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ---------- Mobile pequeño: ≤ 400px ---------- */
-@media (max-width: 400px) {
-  .ml-logo-link {
-    width: 100px;
-    height: 60px;
-  }
-
-  .grid {
     grid-template-columns: 1fr;
   }
 }

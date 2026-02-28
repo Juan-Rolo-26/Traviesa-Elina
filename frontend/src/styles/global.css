@@ -1294,7 +1294,7 @@ body {
 
 .ml-header {
   position: relative;
-  min-height: 228px;
+  min-height: 206px;
   padding: 8px 24px 10px;
 }
 
@@ -1303,13 +1303,13 @@ body {
 }
 
 .ml-brand-block {
-  width: 430px;
+  width: 380px;
   gap: 4px;
 }
 
 .ml-logo-link {
-  width: 390px;
-  height: 222px;
+  width: 340px;
+  height: 194px;
   overflow: visible;
   transform: translateY(-4px);
 }
@@ -1323,7 +1323,7 @@ body {
 
 .ml-search-wrap {
   position: absolute;
-  left: 350px;
+  left: 420px;
   right: 440px;
   bottom: 82px;
   margin-top: 0;

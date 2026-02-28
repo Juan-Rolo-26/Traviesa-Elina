@@ -1,5 +1,8 @@
 const express = require("express");
 const path = require("path");
+const { applyRuntimeFallbackEnv } = require("./src/config/runtimeEnv");
+
+applyRuntimeFallbackEnv();
 
 const authRoutes = require("./src/routes/auth");
 const productRoutes = require("./src/routes/products");

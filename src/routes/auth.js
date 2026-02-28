@@ -16,7 +16,6 @@ const DEFAULT_ADMIN_USER = {
   password: "belgrano23",
   role: "admin",
 };
-const DIAG_FALLBACK_KEY = "abc123_test_runtime";
 
 function trimString(value) {
   return String(value || "").trim();
@@ -57,10 +56,7 @@ function hasDiagAccess(req) {
   const headerKey = trimString(req.headers["x-diag-key"]);
   const queryKey = trimString(req.query?.key);
   const providedKey = headerKey || queryKey;
-  return Boolean(
-    providedKey &&
-      (configuredKey === providedKey || DIAG_FALLBACK_KEY === providedKey)
-  );
+  return Boolean(providedKey && configuredKey === providedKey);
 }
 
 function smtpConfigFromEnv() {

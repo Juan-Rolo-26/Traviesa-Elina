@@ -9,9 +9,9 @@ function getClient() {
   return new MercadoPagoConfig({ accessToken });
 }
 
-async function createPayment(payload) {
+async function createPayment(payload, requestOptions) {
   const payment = new Payment(getClient());
-  return payment.create({ body: payload });
+  return payment.create({ body: payload, requestOptions });
 }
 
 async function getPaymentById(id) {

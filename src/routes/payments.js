@@ -10,6 +10,71 @@ const { formatCentsToNumber, parsePriceToCents } = require("../utils/pricing");
 
 const router = express.Router();
 
+function splitName(fullName) {
+  const [firstName, ...rest] = String(fullName || "").trim().split(/\s+/);
+  return {
+    firstName: firstName || undefined,
+    lastName: rest.join(" ") || undefined,
+  };
+}
+
+function splitArgPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return {};
+  if (digits.length <= 10) return { area_code: digits.slice(0, 3), number: digits.slice(3) };
+  return { area_code: digits.slice(0, 4), number: digits.slice(4) };
+}
+
+function parseAddress(address1) {
+  const raw = String(address1 || "").trim();
+  if (!raw) return {};
+  const match = raw.match(/^(.*?)(?:\s+(\d+))?$/);
+  const streetName = (match?.[1] || raw).trim();
+  const streetNumber = (match?.[2] || "").trim();
+  return {
+    street_name: streetName || undefined,
+    street_number: streetNumber || undefined,
+  };
+}
+
+function buildAdditionalInfo(order) {
+  const names = splitName(order.customerName);
+  const phone = splitArgPhone(order.phone);
+  const address = parseAddress(order.address1);
+
+  const items = (order.items || []).map((item) => ({
+    id: String(item.productId || item.id || ""),
+    title: String(item.productName || "Producto"),
+    description: item.productName || undefined,
+    picture_url: item.productImage ? `${process.env.BASE_URL || ""}${item.productImage}` : undefined,
+    category_id: "fashion",
+    quantity: Number(item.quantity) || 1,
+    currency_id: "ARS",
+    unit_price: formatCentsToNumber(item.productPrice || 0),
+  }));
+
+  return {
+    payer: {
+      first_name: names.firstName,
+      last_name: names.lastName,
+      phone: phone.number ? phone : undefined,
+      address: {
+        zip_code: String(order.postalCode || ""),
+        ...address,
+      },
+    },
+    shipments: {
+      receiver_address: {
+        zip_code: String(order.postalCode || ""),
+        ...address,
+        city_name: order.city || undefined,
+        state_name: order.province || undefined,
+      },
+    },
+    items,
+  };
+}
+
 function serializeSavedMethod(method) {
   return {
     id: method.id,
@@ -75,6 +140,7 @@ router.post("/process", optionalCustomer, async (req, res) => {
       payer,
       savePaymentMethod,
       selectedSavedMethodId,
+      deviceSessionId,
     } = req.body || {};
 
     if (!orderId || !payment_method_id || !transaction_amount || !payer?.email) {
@@ -128,6 +194,15 @@ router.post("/process", optionalCustomer, async (req, res) => {
       };
     }
 
+    const requestOptions =
+      deviceSessionId && String(deviceSessionId).trim()
+        ? {
+            headers: {
+              "X-meli-session-id": String(deviceSessionId).trim(),
+            },
+          }
+        : undefined;
+
     const mpPayment = await createPayment({
       transaction_amount: Number(transaction_amount),
       token: effectiveToken,
@@ -138,10 +213,11 @@ router.post("/process", optionalCustomer, async (req, res) => {
       payer: mpPayer,
       notification_url: notificationUrl,
       external_reference: order.id,
+      additional_info: buildAdditionalInfo(order),
       metadata: {
         orderId: order.id,
       },
-    });
+    }, requestOptions);
 
     const paymentStatus = mpPayment.status || "rejected";
     const orderStatus = normalizePaymentStatus(paymentStatus);

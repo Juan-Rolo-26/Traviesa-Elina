@@ -58,6 +58,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
   const [selectedMethodId, setSelectedMethodId] = useState(null);
   const [paymentResult, setPaymentResult] = useState(null);
   const [brickReady, setBrickReady] = useState(false);
+  const [deviceSessionId, setDeviceSessionId] = useState(null);
   const [provinces, setProvinces] = useState([]);
   const [cities, setCities] = useState([]);
 
@@ -202,6 +203,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                           customerProfile?.email ||
                           undefined,
                       },
+                      deviceSessionId: deviceSessionId || window.MP_DEVICE_SESSION_ID || undefined,
                       savePaymentMethod: Boolean(customerToken && savePaymentMethod),
                       selectedSavedMethodId: selectedMethodId,
                     },
@@ -250,6 +252,42 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
     selectedMethodId,
     onClear,
   ]);
+
+  useEffect(() => {
+    if (step !== "payment") return undefined;
+
+    let cancelled = false;
+    const existing = document.querySelector('script[data-mp-security="true"]');
+
+    const updateDeviceId = () => {
+      const id = window.MP_DEVICE_SESSION_ID;
+      if (!cancelled && id) {
+        setDeviceSessionId(String(id));
+      }
+    };
+
+    if (existing) {
+      updateDeviceId();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://www.mercadopago.com/v2/security.js";
+    script.setAttribute("view", "checkout");
+    script.dataset.mpSecurity = "true";
+    script.onload = updateDeviceId;
+    script.onerror = () => {};
+    document.body.appendChild(script);
+
+    const timer = setTimeout(updateDeviceId, 1200);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [step]);
 
   useEffect(() => {
     if (step !== "payment" || !paymentSession?.orderId || !paymentResult?.paymentStatus) return;

@@ -117,6 +117,17 @@ router.post("/process", optionalCustomer, async (req, res) => {
       ? `${process.env.BASE_URL}/api/webhooks/mercadopago`
       : undefined;
 
+    const mpPayer = {
+      email: payer.email,
+    };
+
+    if (payer?.identification?.type && payer?.identification?.number) {
+      mpPayer.identification = {
+        type: String(payer.identification.type),
+        number: String(payer.identification.number),
+      };
+    }
+
     const mpPayment = await createPayment({
       transaction_amount: Number(transaction_amount),
       token: effectiveToken,
@@ -124,9 +135,7 @@ router.post("/process", optionalCustomer, async (req, res) => {
       installments: Number(installments) || 1,
       payment_method_id,
       issuer_id: issuer_id || undefined,
-      payer: {
-        email: payer.email,
-      },
+      payer: mpPayer,
       notification_url: notificationUrl,
       external_reference: order.id,
       metadata: {

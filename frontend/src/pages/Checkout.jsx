@@ -195,6 +195,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                       orderId: paymentSession.orderId,
                       transaction_amount: paymentSession.amount,
                       payer: {
+                        ...(cardFormData?.payer || {}),
                         email:
                           cardFormData?.payer?.email ||
                           customerProfile?.email ||
@@ -211,7 +212,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                   if (result.paymentStatus === "approved") {
                     onClear?.();
                     setStatus("Pago aprobado. Pedido confirmado.");
-                  } else if (result.paymentStatus === "pending") {
+                  } else if (result.paymentStatus === "pending" || result.paymentStatus === "in_process") {
                     setStatus("Pago pendiente. Te avisaremos cuando se confirme.");
                   } else {
                     setStatus("Pago rechazado. Puedes intentar con otra tarjeta.");

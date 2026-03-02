@@ -37,6 +37,10 @@ function parseAddress(address1) {
   };
 }
 
+function hasAnyValue(values) {
+  return values.some((value) => value !== undefined && value !== null && String(value).trim() !== "");
+}
+
 function buildAdditionalInfo(order) {
   const names = splitName(order.customerName);
   const phone = splitArgPhone(order.phone);
@@ -182,9 +186,38 @@ router.post("/process", optionalCustomer, async (req, res) => {
       ? `${process.env.BASE_URL}/api/webhooks/mercadopago`
       : undefined;
 
+    const orderNames = splitName(order.customerName);
+    const orderPhone = splitArgPhone(order.phone);
+    const orderAddress = parseAddress(order.address1);
+
     const mpPayer = {
-      email: payer.email,
+      email: String(payer.email),
+      first_name: payer?.first_name || orderNames.firstName,
+      last_name: payer?.last_name || orderNames.lastName,
+      type: "customer",
+      entity_type: "individual",
     };
+
+    const effectivePhone = payer?.phone?.number
+      ? {
+          area_code: String(payer.phone.area_code || ""),
+          number: String(payer.phone.number || ""),
+        }
+      : orderPhone.number
+        ? orderPhone
+        : undefined;
+    if (effectivePhone?.number) {
+      mpPayer.phone = effectivePhone;
+    }
+
+    const payerAddress = {
+      zip_code: String(order.postalCode || "").trim() || undefined,
+      street_name: orderAddress.street_name,
+      street_number: orderAddress.street_number,
+    };
+    if (hasAnyValue([payerAddress.zip_code, payerAddress.street_name, payerAddress.street_number])) {
+      mpPayer.address = payerAddress;
+    }
 
     if (payer?.identification?.type && payer?.identification?.number) {
       mpPayer.identification = {

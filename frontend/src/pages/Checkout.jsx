@@ -9,6 +9,8 @@ import { formatPrice } from "../utils/format";
 import { fetchArgCitiesByProvince, fetchArgProvinces } from "../services/argGeo";
 
 const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
+const DEVICE_SESSION_WAIT_ATTEMPTS = 12;
+const DEVICE_SESSION_WAIT_MS = 200;
 
 function hasStoredAddress(profile) {
   if (!profile) return false;
@@ -64,6 +66,24 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
 
   const warningTimers = useRef({});
   const brickControllerRef = useRef(null);
+
+  const waitForDeviceSessionId = async () => {
+    const readId = () =>
+      String(deviceSessionId || window.MP_DEVICE_SESSION_ID || "").trim();
+
+    const immediate = readId();
+    if (immediate) return immediate;
+
+    for (let attempt = 0; attempt < DEVICE_SESSION_WAIT_ATTEMPTS; attempt += 1) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, DEVICE_SESSION_WAIT_MS);
+      });
+      const value = readId();
+      if (value) return value;
+    }
+
+    return undefined;
+  };
 
   const total = useMemo(
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -191,6 +211,11 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                 setStatus(null);
                 setPaymentResult(null);
                 try {
+                  const resolvedDeviceSessionId = await waitForDeviceSessionId();
+                  if (resolvedDeviceSessionId && resolvedDeviceSessionId !== deviceSessionId) {
+                    setDeviceSessionId(resolvedDeviceSessionId);
+                  }
+
                   const result = await processPayment(
                     {
                       ...cardFormData,
@@ -203,7 +228,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                           customerProfile?.email ||
                           undefined,
                       },
-                      deviceSessionId: deviceSessionId || window.MP_DEVICE_SESSION_ID || undefined,
+                      deviceSessionId: resolvedDeviceSessionId,
                       savePaymentMethod: Boolean(customerToken && savePaymentMethod),
                       selectedSavedMethodId: selectedMethodId,
                     },

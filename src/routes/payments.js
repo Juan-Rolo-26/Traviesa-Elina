@@ -252,20 +252,26 @@ router.post("/process", optionalCustomer, async (req, res) => {
     }, requestOptions);
 
     const paymentStatus = mpPayment.status || "rejected";
-    const orderStatus = normalizePaymentStatus(paymentStatus);
-
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        paymentId: String(mpPayment.id),
-        paymentStatus,
-        status: orderStatus,
-        statusDetail: mpPayment.status_detail || null,
-      },
-    });
+    let orderStatus;
 
     if (paymentStatus === "approved") {
-      await applyPaidOrder(order.id, String(mpPayment.id), mpPayment.status_detail || null);
+      const settledOrder = await applyPaidOrder(
+        order.id,
+        String(mpPayment.id),
+        mpPayment.status_detail || null
+      );
+      orderStatus = settledOrder.status;
+    } else {
+      orderStatus = normalizePaymentStatus(paymentStatus);
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          paymentId: String(mpPayment.id),
+          paymentStatus,
+          status: orderStatus,
+          statusDetail: mpPayment.status_detail || null,
+        },
+      });
     }
 
     if (

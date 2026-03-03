@@ -31,20 +31,20 @@ router.post("/mercadopago", async (req, res) => {
     }
 
     const status = payment.status || "rejected";
-    const orderStatus = normalizePaymentStatus(status);
-
-    await prisma.order.updateMany({
-      where: { id: orderId },
-      data: {
-        paymentId: String(payment.id),
-        paymentStatus: status,
-        status: orderStatus,
-        statusDetail: payment.status_detail || null,
-      },
-    });
 
     if (status === "approved") {
       await applyPaidOrder(orderId, String(payment.id), payment.status_detail || null);
+    } else {
+      const orderStatus = normalizePaymentStatus(status);
+      await prisma.order.updateMany({
+        where: { id: orderId },
+        data: {
+          paymentId: String(payment.id),
+          paymentStatus: status,
+          status: orderStatus,
+          statusDetail: payment.status_detail || null,
+        },
+      });
     }
 
     res.status(200).json({ ok: true, signatureVerified: signatureOk });

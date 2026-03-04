@@ -460,7 +460,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
   };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: step === "cart" ? "1fr" : "1.2fr 1fr" }}>
+    <div className={`grid${step === "payment" ? " checkout-payment-grid" : ""}`} style={{ gridTemplateColumns: step === "cart" ? "1fr" : "1.2fr 1fr" }}>
       {(step === "cart" || step === "checkout") && (
         <div className="form">
           <h2>{step === "cart" ? "Mi paquete:" : "Checkout"}</h2>
@@ -624,7 +624,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
             {status && <p className="helper">{status}</p>}
           </div>
 
-          <div className="form">
+          <div className="form checkout-summary">
             <h2>Resumen</h2>
             <div className="table-row">
               <span>Total a pagar</span>

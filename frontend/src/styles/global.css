@@ -2520,4 +2520,20 @@ html {
   .admin-upload-plus:active {
     background: var(--bg-accent);
   }
+
+  /* ---- Logo más grande sin mover otros elementos ---- */
+  /* transform no afecta el layout flex, solo la apariencia visual */
+  .ml-logo-img {
+    transform: scale(1.22);
+    transform-origin: left center;
+  }
+
+  /* ---- Paso de pago: ocultar resumen, formulario ocupa todo el ancho ---- */
+  .checkout-payment-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .checkout-summary {
+    display: none;
+  }
 }

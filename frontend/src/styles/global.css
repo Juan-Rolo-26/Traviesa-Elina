@@ -2538,7 +2538,9 @@ html {
   }
 
   /* ---- Checkout ocupa toda la pantalla en mobile ---- */
+  /* Override el inline style "1.2fr 1fr" en todos los pasos del checkout */
   .checkout-grid {
+    grid-template-columns: 1fr !important;
     margin-left: -12px;
     margin-right: -12px;
   }

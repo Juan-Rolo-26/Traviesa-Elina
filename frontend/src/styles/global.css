@@ -2524,7 +2524,7 @@ html {
   /* ---- Logo más grande sin mover otros elementos ---- */
   /* transform no afecta el layout flex, solo la apariencia visual */
   .ml-logo-img {
-    transform: scale(1.22);
+    transform: scale(1.38);
     transform-origin: left center;
   }
 
@@ -2535,5 +2535,17 @@ html {
 
   .checkout-summary {
     display: none;
+  }
+
+  /* ---- Checkout ocupa toda la pantalla en mobile ---- */
+  .checkout-grid {
+    margin-left: -12px;
+    margin-right: -12px;
+  }
+
+  .checkout-grid .form {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 }

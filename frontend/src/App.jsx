@@ -308,7 +308,7 @@ function App() {
               Agregar producto
             </NavLink>
             <button className="mabel-action-btn" type="button" onClick={handleMabelLogout}>
-              Salir modo Mabel
+              Salir modo Elina
             </button>
           </div>
         )}

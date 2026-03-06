@@ -25,7 +25,7 @@ function MabelAccess({ onUnlock }) {
 
   return (
     <section className="form">
-      <h2>Acceso Modo Mabel</h2>
+      <h2>Acceso Modo Elina</h2>
       <p className="helper">Ingresa la contrasena para habilitar gestion de productos.</p>
       <form className="auth-form" onSubmit={handleSubmit}>
         <input

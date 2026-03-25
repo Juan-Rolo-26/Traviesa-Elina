@@ -7,7 +7,7 @@ import AdminPanel from "./pages/AdminPanel";
 import MabelAccess from "./pages/MabelAccess";
 import ProductDetail from "./pages/ProductDetail";
 import PurchasesPage from "./pages/PurchasesPage";
-import logo from "./assets/logo-nuevo.png";
+import logo from "./assets/logo-blanqueria.png";
 import routeLoaderAnimation from "./assets/route-loader.json";
 
 function App() {

@@ -2706,7 +2706,7 @@ html {
 }
 
 .ml-logo-img {
-  height: 240px !important;
+  height: 300px !important;
   width: auto !important;
   object-fit: contain !important;
   mix-blend-mode: multiply !important;
@@ -2805,7 +2805,7 @@ html {
     order: 1;
   }
   .ml-logo-img {
-    height: 90px !important;
+    height: 120px !important;
   }
   .ml-nav-row {
     justify-content: center !important;

@@ -229,16 +229,12 @@ function App() {
             >
               <NavLink
                 ref={lotIconRef}
-                className={({ isActive }) => `ml-icon-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""} ${lotOpen ? "open" : ""}`}
+                className={({ isActive }) => `text-cart-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""} ${lotOpen ? "open" : ""}`}
                 to="/checkout"
-                aria-label="Mi paquete"
+                aria-label="Mi carrito"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path className="box-base" d="M4 9l8-4 8 4-8 4-8-4Z" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M4 9v7l8 4 8-4V9" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                  <path className="box-lid" d="M12 13V5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-                <span className="nav-badge">{lotCount}</span>
+                <div className="text-cart-title">Carrito ({lotCount})</div>
+                <div className="text-cart-total">{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</div>
               </NavLink>
               {lotPreviewOpen && (
                 <div
@@ -322,6 +318,7 @@ function App() {
             <Link to="/" className="category-link">Deco</Link>
             <Link to="/" className="category-link">Alfombras</Link>
             <Link to="/" className="category-link">Cocina</Link>
+            <Link to="/" className="category-link">Otros</Link>
           </nav>
         </div>
 

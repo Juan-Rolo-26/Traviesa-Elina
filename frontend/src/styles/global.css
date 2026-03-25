@@ -2627,8 +2627,8 @@ html {
   max-width: 1300px;
   margin: 0 auto;
   width: 100%;
-  padding: 6px 24px !important;
-  min-height: 52px;
+  padding: 12px 24px !important;
+  min-height: 68px;
   gap: 20px;
   background: #ffffff;
 }
@@ -2706,7 +2706,7 @@ html {
 }
 
 .ml-logo-img {
-  height: 230px !important;
+  height: 180px !important;
   width: auto !important;
   object-fit: contain !important;
   mix-blend-mode: normal !important;

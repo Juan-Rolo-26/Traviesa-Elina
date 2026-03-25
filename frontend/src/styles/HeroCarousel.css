@@ -5,8 +5,8 @@
   margin-right: calc(50% - 50vw);
   margin-top: -1px;
   margin-bottom: 0;
-  min-height: 230px;
-  height: clamp(230px, 34vw, 360px);
+  min-height: 400px;
+  height: clamp(400px, 45vw, 600px);
   border-radius: 0;
   overflow: hidden;
   background: #d3c8b1;
@@ -110,8 +110,8 @@
 
 @media (max-width: 920px) {
   .hero-carousel {
-    min-height: 200px;
-    height: clamp(200px, 56vw, 290px);
+    min-height: 300px;
+    height: clamp(300px, 60vw, 400px);
     margin-bottom: 0;
   }
 

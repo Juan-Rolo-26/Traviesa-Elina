@@ -32,7 +32,7 @@ body {
   font-family: "Space Grotesk", sans-serif;
   color: var(--text);
   background: radial-gradient(circle at top left, #fffaf0 0%, var(--bg) 45%, #eadfce 100%);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a {
@@ -2637,6 +2637,8 @@ html {
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  position: relative;
+  z-index: 200;
 }
 
 .ml-main-center {
@@ -2654,6 +2656,11 @@ html {
   padding: 0 !important;
   margin: 0 !important;
   position: static !important;
+}
+
+.ml-nav-row > * {
+  position: relative;
+  z-index: 200;
 }
 
 .ml-nav-row .nav-link {
@@ -2728,6 +2735,8 @@ html {
   border-top: 1px solid #eeeeee;
   width: 100%;
   background: #ffffff;
+  position: relative;
+  z-index: 200;
 }
 
 .categories-nav {
@@ -2891,15 +2900,15 @@ html {
 .ml-top-bar {
   max-height: 100px;
   overflow: hidden;
-  transition: max-height 0.35s ease, opacity 0.35s ease !important;
+  transition: all 0.35s ease !important;
 }
 
-.ml-main-bar, .categories-nav, .ml-logo-img, .top-bar-container {
+.ml-main-bar, .categories-nav, .ml-logo-img, .top-bar-container, .ml-categories-bar {
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .header-scrolled {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
+  background: transparent !important;
 }
 
 .header-scrolled .ml-top-bar {
@@ -2914,12 +2923,20 @@ html {
 }
 
 .header-scrolled .ml-main-bar {
+  background: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
   padding: 10px 24px !important;
   min-height: 70px !important;
 }
 
 .header-scrolled .ml-logo-img {
-  height: 150px !important;
+  height: 140px !important;
+}
+
+.header-scrolled .ml-categories-bar {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  border-top-color: transparent !important;
 }
 
 .header-scrolled .categories-nav {

@@ -2590,11 +2590,11 @@ html {
 .top-bar-container {
   max-width: 1300px;
   margin: 0 auto;
-  padding: 8px 24px;
+  padding: 12px 24px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   font-family: inherit;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -2627,8 +2627,8 @@ html {
   max-width: 1300px;
   margin: 0 auto;
   width: 100%;
-  padding: 12px 24px !important;
-  min-height: 68px;
+  padding: 24px 24px !important;
+  min-height: 90px;
   gap: 20px;
   background: #ffffff;
 }
@@ -2671,7 +2671,7 @@ html {
 .ml-search-wrap {
   display: flex !important;
   width: 100% !important;
-  max-width: 320px !important;
+  max-width: 400px !important;
   background: #FFFFFF !important;
   border: 1px solid #ddd !important;
   border-radius: 4px !important;
@@ -2685,8 +2685,8 @@ html {
   width: 100% !important;
   border: none !important;
   background: transparent !important;
-  padding: 10px 14px !important;
-  font-size: 14px !important;
+  padding: 13px 16px !important;
+  font-size: 15px !important;
   outline: none !important;
   color: #333 !important;
   font-family: inherit !important;
@@ -2699,14 +2699,14 @@ html {
   background: #f4f4f4 !important;
   border: none !important;
   cursor: pointer !important;
-  padding: 0 16px !important;
+  padding: 0 20px !important;
   color: #666 !important;
   border-left: 1px solid #ddd !important;
   border-radius: 0 4px 4px 0 !important;
 }
 
 .ml-logo-img {
-  height: 200px !important;
+  height: 240px !important;
   width: auto !important;
   object-fit: contain !important;
   mix-blend-mode: multiply !important;
@@ -2737,7 +2737,7 @@ html {
   justify-content: center;
   align-items: center;
   gap: 48px;
-  padding: 16px 24px;
+  padding: 20px 24px;
 }
 
 .category-link {
@@ -2805,7 +2805,7 @@ html {
     order: 1;
   }
   .ml-logo-img {
-    height: 70px !important;
+    height: 90px !important;
   }
   .ml-nav-row {
     justify-content: center !important;

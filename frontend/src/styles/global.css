@@ -2876,3 +2876,58 @@ html {
 .text-cart-link:hover .text-cart-title {
   color: #D98F9E;
 }
+
+/* -----------------------------------------------
+   HEADER STICKY ANIMADO (SCROLL)
+   ----------------------------------------------- */
+.ml-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform;
+}
+
+.ml-top-bar {
+  max-height: 100px;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.35s ease !important;
+}
+
+.ml-main-bar, .categories-nav, .ml-logo-img, .top-bar-container {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.header-scrolled {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+.header-scrolled .ml-top-bar {
+  max-height: 0 !important;
+  opacity: 0 !important;
+}
+
+.header-scrolled .top-bar-container {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0 !important;
+}
+
+.header-scrolled .ml-main-bar {
+  padding: 10px 24px !important;
+  min-height: 70px !important;
+}
+
+.header-scrolled .ml-logo-img {
+  height: 150px !important;
+}
+
+.header-scrolled .categories-nav {
+  padding: 10px 24px !important;
+}
+
+@media (max-width: 920px) {
+  .header-scrolled .ml-logo-img {
+    height: 70px !important;
+  }
+}

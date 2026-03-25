@@ -20,6 +20,7 @@ function App() {
   const [lotPreviewOpen, setLotPreviewOpen] = useState(false);
   const [routeLoading, setRouteLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const lotIconRef = useRef(null);
   const routeTimerRef = useRef(null);
   const lotPreviewCloseTimerRef = useRef(null);
@@ -65,6 +66,14 @@ function App() {
       document.body.style.overflow = '';
     };
   }, [drawerOpen]);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   React.useEffect(() => {
     const handleResize = () => { if (window.innerWidth > 860) setDrawerOpen(false); };
@@ -161,7 +170,7 @@ function App() {
 
   return (
     <div className="container">
-      <header className="header ml-header">
+      <header className={`header ml-header ${isScrolled ? "header-scrolled" : ""}`}>
         {/* Capa 1: Top Bar */}
         <div className="ml-top-bar">
           <div className="top-bar-container">

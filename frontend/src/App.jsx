@@ -162,8 +162,45 @@ function App() {
   return (
     <div className="container">
       <header className="header ml-header">
-        <div className="ml-top">
-          <div className="ml-brand-block">
+        {/* Capa 1: Top Bar */}
+        <div className="ml-top-bar">
+          <div className="top-bar-container">
+            <span className="top-bar-text">DESCUENTO 7% con Transferencia</span>
+            <a href="https://www.instagram.com/traviesa_ev/?hl=es" target="_blank" rel="noopener noreferrer" className="top-bar-ig">INSTAGRAM</a>
+          </div>
+        </div>
+
+        {/* Capa 2: Main Bar */}
+        <div className="ml-main-bar">
+          <div className="ml-main-left">
+            <div className="ml-search-wrap">
+              <input
+                className="ml-search-input"
+                type="search"
+                placeholder="Busca productos, marcas y mas...."
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    const nextQuery = String(searchInput || "").trim();
+                    setSearchQuery(nextQuery);
+                    if (location.pathname !== "/") {
+                      navigate("/");
+                    }
+                    startRouteLoader();
+                  }
+                }}
+              />
+              <button className="ml-search-button" type="button" aria-label="Buscar">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M16 16l4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="ml-main-center">
             <Link
               className="ml-logo-link"
               to="/"
@@ -178,130 +215,116 @@ function App() {
             </Link>
           </div>
 
-          <div className="ml-search-wrap">
-            <input
-              className="ml-search-input"
-              type="search"
-              placeholder="Busca productos, marcas y mas...."
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  const nextQuery = String(searchInput || "").trim();
-                  setSearchQuery(nextQuery);
-                  if (location.pathname !== "/") {
-                    navigate("/");
-                  }
-                  startRouteLoader();
-                }
-              }}
-            />
-            <button className="ml-search-button" type="button" aria-label="Buscar">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M16 16l4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <nav className="ml-nav-row">
-          <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/">
-            Tienda
-          </NavLink>
-          <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/mis-compras">
-            Mis compras
-          </NavLink>
-          <div
-            className="lot-hover-wrap"
-            onMouseEnter={openLotPreview}
-            onMouseLeave={closeLotPreviewWithDelay}
-          >
-            <NavLink
-              ref={lotIconRef}
-              className={({ isActive }) => `ml-icon-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""} ${lotOpen ? "open" : ""}`}
-              to="/checkout"
-              aria-label="Mi paquete"
+          <nav className="ml-nav-row">
+            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/">
+              Tienda
+            </NavLink>
+            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/mis-compras">
+              Mis compras
+            </NavLink>
+            <div
+              className="lot-hover-wrap"
+              onMouseEnter={openLotPreview}
+              onMouseLeave={closeLotPreviewWithDelay}
+            >
+              <NavLink
+                ref={lotIconRef}
+                className={({ isActive }) => `ml-icon-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""} ${lotOpen ? "open" : ""}`}
+                to="/checkout"
+                aria-label="Mi paquete"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path className="box-base" d="M4 9l8-4 8 4-8 4-8-4Z" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M4 9v7l8 4 8-4V9" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  <path className="box-lid" d="M12 13V5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+                <span className="nav-badge">{lotCount}</span>
+              </NavLink>
+              {lotPreviewOpen && (
+                <div
+                  className="lot-preview"
+                  onMouseEnter={openLotPreview}
+                  onMouseLeave={closeLotPreviewWithDelay}
+                >
+                  <h4>Mi paquete:</h4>
+                  {cart.length === 0 ? (
+                    <p className="helper">No hay productos en el lote.</p>
+                  ) : (
+                    <>
+                      <div className="lot-preview-list">
+                        {cart.map((item) => (
+                          <div key={item.productId} className="lot-preview-item">
+                            <img src={item.image} alt={item.name} />
+                            <div className="lot-preview-info">
+                              <strong>{item.name}</strong>
+                              <span>{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(item.price * item.quantity)}</span>
+                              <div className="lot-preview-qty">
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartQuantity(item.productId, Math.max(1, item.quantity - 1))}
+                                  disabled={item.quantity <= 1}
+                                >
+                                  -
+                                </button>
+                                <span>{item.quantity}</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateCartQuantity(item.productId, Math.min(Number(item.stock) || 1, item.quantity + 1))
+                                  }
+                                  disabled={item.quantity >= (Number(item.stock) || 1)}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                            <button className="lot-preview-remove" type="button" onClick={() => removeFromCart(item.productId)}>
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="lot-preview-footer">
+                        <span>Total</span>
+                        <strong>{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</strong>
+                      </div>
+                      <div className="lot-preview-actions">
+                        <Link className="button lot-preview-go" to="/checkout">
+                          Ver mi paquete
+                        </Link>
+                        <Link className="button lot-preview-go secondary" to="/checkout?step=checkout">
+                          Continuar compra
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <button
+              className="ml-hamburger"
+              type="button"
+              aria-label="Abrir menú"
+              onClick={() => setDrawerOpen(true)}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path className="box-base" d="M4 9l8-4 8 4-8 4-8-4Z" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M4 9v7l8 4 8-4V9" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                <path className="box-lid" d="M12 13V5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
-              <span className="nav-badge">{lotCount}</span>
-            </NavLink>
-            {lotPreviewOpen && (
-              <div
-                className="lot-preview"
-                onMouseEnter={openLotPreview}
-                onMouseLeave={closeLotPreviewWithDelay}
-              >
-                <h4>Mi paquete:</h4>
-                {cart.length === 0 ? (
-                  <p className="helper">No hay productos en el lote.</p>
-                ) : (
-                  <>
-                    <div className="lot-preview-list">
-                      {cart.map((item) => (
-                        <div key={item.productId} className="lot-preview-item">
-                          <img src={item.image} alt={item.name} />
-                          <div className="lot-preview-info">
-                            <strong>{item.name}</strong>
-                            <span>{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(item.price * item.quantity)}</span>
-                            <div className="lot-preview-qty">
-                              <button
-                                type="button"
-                                onClick={() => updateCartQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                                disabled={item.quantity <= 1}
-                              >
-                                -
-                              </button>
-                              <span>{item.quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateCartQuantity(item.productId, Math.min(Number(item.stock) || 1, item.quantity + 1))
-                                }
-                                disabled={item.quantity >= (Number(item.stock) || 1)}
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-                          <button className="lot-preview-remove" type="button" onClick={() => removeFromCart(item.productId)}>
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="lot-preview-footer">
-                      <span>Total</span>
-                      <strong>{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</strong>
-                    </div>
-                    <div className="lot-preview-actions">
-                      <Link className="button lot-preview-go" to="/checkout">
-                        Ver mi paquete
-                      </Link>
-                      <Link className="button lot-preview-go secondary" to="/checkout?step=checkout">
-                        Continuar compra
-                      </Link>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-          <button
-            className="ml-hamburger"
-            type="button"
-            aria-label="Abrir menú"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-        </nav>
+            </button>
+          </nav>
+        </div>
+
+        {/* Capa 3: Categorías Bar */}
+        <div className="ml-categories-bar">
+          <nav className="categories-nav">
+            <Link to="/" className="category-link">Blanqueria</Link>
+            <Link to="/" className="category-link">Bazar</Link>
+            <Link to="/" className="category-link">Deco</Link>
+            <Link to="/" className="category-link">Alfombras</Link>
+            <Link to="/" className="category-link">Cocina</Link>
+          </nav>
+        </div>
+
         {isMabelMode && (
           <div className="mabel-actions-row">
             <NavLink className="mabel-action-btn" to="/admin">

@@ -46,6 +46,7 @@ model Product {
   name        String
   price         Int
   discountPrice Int?
+  category      String?
   stock       Int      @default(1)
   image       String
   description String?

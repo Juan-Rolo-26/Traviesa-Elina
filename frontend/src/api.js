@@ -155,8 +155,9 @@ export async function deleteSavedPaymentMethod(token, paymentMethodId) {
   return res.json();
 }
 
-export async function fetchProducts() {
-  const res = await fetch(`${API_URL}/api/products`);
+export async function fetchProducts(category = null) {
+  const url = category ? `${API_URL}/api/products?category=${encodeURIComponent(category)}` : `${API_URL}/api/products`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("No se pudieron cargar productos");
   return res.json();
 }

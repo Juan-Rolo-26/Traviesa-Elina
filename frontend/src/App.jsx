@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Checkout from "./pages/Checkout";
 import AdminPanel from "./pages/AdminPanel";
 import MabelAccess from "./pages/MabelAccess";
+import CategoryPage from "./pages/CategoryPage";
 import ProductDetail from "./pages/ProductDetail";
 import PurchasesPage from "./pages/PurchasesPage";
 import logo from "./assets/logo-blanqueria.png";
@@ -255,11 +256,11 @@ function App() {
         {/* Capa 3: Categorías Bar */}
         <div className="ml-categories-bar">
           <nav className="categories-nav">
-            <Link to="/" className="category-link">Blanqueria</Link>
-            <Link to="/" className="category-link">Bazar</Link>
-            <Link to="/" className="category-link">Deco</Link>
-            <Link to="/" className="category-link">Alfombras</Link>
-            <Link to="/" className="category-link">Cocina</Link>
+            <Link to="/categoria/Blanqueria" className="category-link">Blanqueria</Link>
+            <Link to="/categoria/Bazar" className="category-link">Bazar</Link>
+            <Link to="/categoria/Deco" className="category-link">Deco</Link>
+            <Link to="/categoria/Alfombras" className="category-link">Alfombras</Link>
+            <Link to="/categoria/Cocina" className="category-link">Cocina</Link>
           </nav>
         </div>
 
@@ -279,6 +280,10 @@ function App() {
         <Route
           path="/"
           element={<Home onAdd={addToCart} searchQuery={searchQuery} cart={cart} isAdmin={isMabelMode} />}
+        />
+        <Route
+          path="/categoria/:categoryName"
+          element={<CategoryPage onAdd={addToCart} cart={cart} isAdmin={isMabelMode} />}
         />
         <Route path="/producto/:id" element={<ProductDetail onAdd={addToCart} isMabelMode={isMabelMode} />} />
         <Route path="/mis-compras" element={<PurchasesPage />} />

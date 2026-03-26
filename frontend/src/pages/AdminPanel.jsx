@@ -6,6 +6,7 @@ const initialState = {
   name: "",
   price: "",
   discountPrice: "",
+  category: "Blanqueria",
   stock: "1",
   description: "",
 };
@@ -46,8 +47,9 @@ function AdminPanel({ token, onLogout }) {
         setCurrentProduct(product);
         setForm({
           name: product.name || "",
-          price: String(product.price ?? ""),
+          price: String(product.price || ""),
           discountPrice: product.discountPrice ? String(product.discountPrice) : "",
+          category: product.category || "Blanqueria",
           stock: String(product.stock ?? "1"),
           description: product.description || "",
         });
@@ -136,7 +138,7 @@ function AdminPanel({ token, onLogout }) {
 
     const data = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== "") data.append(key, value);
+      if (value !== "" || key === "discountPrice" || key === "category" || key === "description") data.append(key, value);
     });
     media.forEach((item) => item.file && data.append("media", item.file));
 
@@ -175,7 +177,7 @@ function AdminPanel({ token, onLogout }) {
     }
     const data = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== "") data.append(key, value);
+      if (value !== "" || key === "discountPrice" || key === "category" || key === "description") data.append(key, value);
     });
 
     const existingMedia = media
@@ -307,6 +309,13 @@ function AdminPanel({ token, onLogout }) {
           <input name="name" placeholder="Nombre" value={form.name} onChange={handleChange} required />
           <input name="price" placeholder="Precio (ej: 14500)" value={form.price} onChange={handleChange} required />
           <input name="discountPrice" placeholder="Precio descuento (opcional)" value={form.discountPrice} onChange={handleChange} />
+          <select name="category" value={form.category} onChange={handleChange} required>
+            <option value="Blanqueria">Blanqueria</option>
+            <option value="Bazar">Bazar</option>
+            <option value="Deco">Deco</option>
+            <option value="Alfombras">Alfombras</option>
+            <option value="Cocina">Cocina</option>
+          </select>
           <input name="stock" placeholder="Stock (default 1)" value={form.stock} onChange={handleChange} />
           <textarea
             name="description"

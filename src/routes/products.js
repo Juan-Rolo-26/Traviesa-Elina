@@ -81,8 +81,14 @@ function hasDiagAccess(req) {
 
 router.get("/", async (req, res) => {
   try {
+    const { category } = req.query;
+    const where = { stock: { gt: 0 } };
+    if (category) {
+      where.category = category;
+    }
+
     const products = await prisma.product.findMany({
-      where: { stock: { gt: 0 } },
+      where,
       orderBy: { createdAt: "desc" },
       include: { media: true },
     });
@@ -126,7 +132,7 @@ router.get("/:id", async (req, res) => {
 router.post("/", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
-    const { name, price, discountPrice, stock, description } = req.body;
+    const { name, price, discountPrice, category, stock, description } = req.body;
     const files = req.files || [];
     if (!name || !price || files.length === 0) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -150,6 +156,7 @@ router.post("/", requireMabel, async (req, res) => {
         name,
         price: parsePriceToCents(price),
         discountPrice: discountPrice ? parsePriceToCents(discountPrice) : null,
+        category: category || null,
         stock: stock ? Number(stock) : 1,
         description: description || null,
         image: cover?.url || "/uploads/placeholder.png",
@@ -180,11 +187,23 @@ router.put("/:id", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
     const payload = {};
-    const { name, price, discountPrice, stock, description, existingMedia } = req.body;
+    const { name, price, discountPrice, category, stock, description, existingMedia } = req.body;
 
     if (name) payload.name = name;
     if (price) payload.price = parsePriceToCents(price);
-    if (discountPrice !== undefined) payload.discountPrice = discountPrice ? parsePriceToCents(discountPrice) : null;
+
+    if (discountPrice !== undefined) {
+      if (discountPrice === "") {
+        payload.discountPrice = null;
+      } else {
+        payload.discountPrice = parsePriceToCents(discountPrice);
+      }
+    }
+
+    if (category !== undefined) {
+      payload.category = category === "" ? null : category;
+    }
+
     if (stock !== undefined) payload.stock = Number(stock);
     if (description !== undefined) payload.description = description || null;
 

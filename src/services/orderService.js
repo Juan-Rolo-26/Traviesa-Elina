@@ -58,7 +58,10 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
   const productIds = Array.from(quantityById.keys());
 
   return prisma.$transaction(async (tx) => {
-    const products = await tx.product.findMany({ where: { id: { in: productIds } } });
+    const products = await tx.product.findMany({
+      where: { id: { in: productIds } },
+      include: { wholesaleOffers: true },
+    });
 
     if (products.length !== productIds.length) {
       throw new Error("One or more products are missing");
@@ -71,10 +74,13 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
       }
     }
 
-    const totalAmount = products.reduce(
-      (sum, product) => sum + product.price * (quantityById.get(product.id) || 1),
-      0
-    );
+    const totalAmount = products.reduce((sum, product) => {
+      const qty = quantityById.get(product.id) || 1;
+      const match = (product.wholesaleOffers || []).find((o) => o.quantity === qty);
+      if (match) return sum + match.price;
+      const unitPrice = product.discountPrice ?? product.price;
+      return sum + unitPrice * qty;
+    }, 0);
 
     const order = await tx.order.create({
       data: {
@@ -90,13 +96,18 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
         totalAmount,
         status: "pending",
         items: {
-          create: products.map((product) => ({
-            productId: product.id,
-            productName: product.name,
-            productPrice: product.price,
-            productImage: product.image,
-            quantity: quantityById.get(product.id) || 1,
-          })),
+          create: products.map((product) => {
+            const qty = quantityById.get(product.id) || 1;
+            const match = (product.wholesaleOffers || []).find((o) => o.quantity === qty);
+            const unitPrice = match ? Math.floor(match.price / qty) : (product.discountPrice ?? product.price);
+            return {
+              productId: product.id,
+              productName: product.name,
+              productPrice: unitPrice,
+              productImage: product.image,
+              quantity: qty,
+            };
+          }),
         },
       },
       include: { items: true, customer: true },

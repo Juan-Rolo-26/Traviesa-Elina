@@ -87,10 +87,13 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
     return undefined;
   };
 
-  const total = useMemo(
-    () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [cart]
-  );
+  const total = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const match = (item.wholesaleOffers || []).find((o) => Number(o.quantity) === Number(item.quantity));
+      if (match) return sum + Number(match.price);
+      return sum + item.price * item.quantity;
+    }, 0);
+  }, [cart]);
 
   const hasSavedLocation = Boolean(customerToken && hasStoredAddress(customerProfile));
 
@@ -477,8 +480,18 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                     <div className="cart-item-top">
                       <div className="cart-item-title-col">
                         <strong>{item.name}</strong>
+                        {((item.wholesaleOffers || []).find(o => Number(o.quantity) === Number(item.quantity))) && (
+                          <div style={{ fontSize: '11px', color: '#ff0000', marginTop: '2px', fontWeight: '700' }}>
+                            PRECIO MAYORISTA APLICADO
+                          </div>
+                        )}
                       </div>
-                      <strong className="cart-item-price-gold">{formatPrice(item.price * item.quantity)}</strong>
+                      <strong className="cart-item-price-gold">
+                        {(() => {
+                          const match = (item.wholesaleOffers || []).find(o => Number(o.quantity) === Number(item.quantity));
+                          return formatPrice(match ? match.price : (item.price * item.quantity));
+                        })()}
+                      </strong>
                     </div>
                     <div className="cart-item-bottom">
                       <div className="qty-control cart-qty-new">

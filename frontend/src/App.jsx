@@ -135,6 +135,7 @@ function App() {
           quantity: safeQty,
           image: product.image,
           stock: product.stock,
+          wholesaleOffers: product.wholesaleOffers || [],
         },
       ];
     });
@@ -154,7 +155,13 @@ function App() {
   };
 
   const clearCart = () => setCart([]);
-  const previewTotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
+  const previewTotal = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const match = (item.wholesaleOffers || []).find((o) => Number(o.quantity) === Number(item.quantity));
+      if (match) return sum + Number(match.price);
+      return sum + item.price * item.quantity;
+    }, 0);
+  }, [cart]);
 
   const handleMabelUnlock = (token) => {
     localStorage.setItem("mabelToken", token);

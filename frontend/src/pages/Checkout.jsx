@@ -460,100 +460,121 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
   };
 
   return (
-    <div className={`grid checkout-grid${step === "payment" ? " checkout-payment-grid" : ""}`} style={{ gridTemplateColumns: step === "cart" ? "1fr" : "1.2fr 1fr" }}>
-      {(step === "cart" || step === "checkout") && (
-        <div className="form">
-          <h2>{step === "cart" ? "Mi paquete:" : "Contacto"}</h2>
-          {cart.length === 0 && <p className="helper">No hay productos en el lote.</p>}
-          <div className="table">
-            {cart.map((item) => (
-              <div className="cart-item" key={item.productId}>
-                <img src={item.image} alt={item.name} />
-                <div className="cart-item-info">
-                  <strong>{item.name}</strong>
-                  <span className="helper">
-                    Ancho: {item.width} · Alto: {item.height} · Peso: {item.weight}
-                  </span>
-                  <div className="qty-control cart-qty">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        item.onQtyChange?.(item.productId, Math.max(1, item.quantity - 1))
-                      }
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (item.stock && item.quantity + 1 > item.stock) {
-                          showWarning(item.productId);
-                          return;
-                        }
-                        item.onQtyChange?.(item.productId, item.quantity + 1);
-                      }}
-                    >
-                      +
-                    </button>
+    <div className={`checkout-wrapper ${step}`}>
+      {step === "cart" && (
+        <div className="cart-page-new">
+          <div className="cart-page-head">
+            <h1>Tu Carrito</h1>
+            <p>Revisa tus selecciones cuidadosamente antes de finalizar tu pedido boutique.</p>
+          </div>
+          <div className="cart-page-split">
+            <div className="cart-items-col">
+              {cart.length === 0 && <p className="helper">No hay productos en el carrito.</p>}
+              {cart.map((item) => (
+                <div className="cart-item-card" key={item.productId}>
+                  <img src={item.image} alt={item.name} />
+                  <div className="cart-item-info">
+                    <div className="cart-item-top">
+                      <div className="cart-item-title-col">
+                        <strong>{item.name}</strong>
+                      </div>
+                      <strong className="cart-item-price-gold">{formatPrice(item.price * item.quantity)}</strong>
+                    </div>
+                    <div className="cart-item-bottom">
+                      <div className="qty-control cart-qty-new">
+                        <button
+                          type="button"
+                          onClick={() => item.onQtyChange?.(item.productId, Math.max(1, item.quantity - 1))}
+                          disabled={item.quantity <= 1}
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (item.stock && item.quantity + 1 > item.stock) {
+                              showWarning(item.productId);
+                              return;
+                            }
+                            item.onQtyChange?.(item.productId, item.quantity + 1);
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        className="cart-remove-text"
+                        type="button"
+                        onClick={() => item.onRemove?.(item.productId)}
+                        aria-label="Eliminar"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        ELIMINAR
+                      </button>
+                    </div>
+                    {warnings[item.productId] && (
+                      <span className="helper warning-text">No hay esa cantidad en stock</span>
+                    )}
                   </div>
-                  {warnings[item.productId] && (
-                    <span className="helper">no hay esa cantidad en el stock</span>
-                  )}
                 </div>
-                <strong>{formatPrice(item.price * item.quantity)}</strong>
+              ))}
+            </div>
+
+            <div className="cart-summary-col">
+              <div className="cart-summary-box">
+                <h3>Resumen</h3>
+                <div className="cart-summary-row">
+                  <span className="summary-label">Subtotal ({cart.length} items)</span>
+                  <strong>{formatPrice(total)}</strong>
+                </div>
+                <div className="cart-summary-row">
+                  <span className="summary-label">Envio Estandar</span>
+                  <strong>A calcular</strong>
+                </div>
+                <div className="cart-summary-total">
+                  <span>TOTAL</span>
+                  <strong className="cart-item-price-gold total-big">{formatPrice(total)}</strong>
+                </div>
                 <button
-                  className="cart-remove"
+                  className="button checkout-continue-btn"
                   type="button"
-                  onClick={() => item.onRemove?.(item.productId)}
-                  aria-label="Eliminar"
+                  disabled={cart.length === 0}
+                  onClick={() => setStep("checkout")}
                 >
-                  ×
+                  Continuar compra
                 </button>
               </div>
-            ))}
+            </div>
           </div>
-          <div className="table-row">
-            <span>Total</span>
-            <strong>{formatPrice(total)}</strong>
-          </div>
+        </div>
+      )}
 
-          {step === "cart" ? (
-            <button
-              className="button"
-              type="button"
-              disabled={cart.length === 0}
-              onClick={() => setStep("checkout")}
-            >
-              Continuar compra
+      {step === "checkout" && (
+        <div className="form checkout-contact-form">
+          <h2>Contacto</h2>
+          <form className="checkout-form" onSubmit={handleInitPayment}>
+            <>
+              <input
+                name="customerName"
+                placeholder="Nombre y apellido"
+                value={form.customerName}
+                onChange={handleChange}
+                required
+              />
+              <input
+                name="phone"
+                placeholder="Telefono"
+                value={form.phone}
+                onChange={handleChange}
+                inputMode="numeric"
+                required
+              />
+            </>
+            <button className="button checkout-finish-btn" type="submit" disabled={loading}>
+              {loading ? "Preparando pago..." : "Finalizar compra"}
             </button>
-          ) : (
-            <form className="checkout-form" onSubmit={handleInitPayment}>
-              <>
-                <input
-                  name="customerName"
-                  placeholder="Nombre y apellido"
-                  value={form.customerName}
-                  onChange={handleChange}
-                  required
-                />
-                <input
-                  name="phone"
-                  placeholder="Telefono"
-                  value={form.phone}
-                  onChange={handleChange}
-                  inputMode="numeric"
-                  required
-                />
-              </>
-
-              <button className="button" type="submit" disabled={loading}>
-                {loading ? "Preparando pago..." : "Finalizar compra"}
-              </button>
-            </form>
-          )}
-
+          </form>
           {status && <p className="helper">{status}</p>}
         </div>
       )}

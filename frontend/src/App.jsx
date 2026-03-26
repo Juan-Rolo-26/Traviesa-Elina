@@ -228,80 +228,16 @@ function App() {
             <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/mis-compras">
               Mis compras
             </NavLink>
-            <div
-              className="lot-hover-wrap"
-              onMouseEnter={openLotPreview}
-              onMouseLeave={closeLotPreviewWithDelay}
-            >
+            <div>
               <NavLink
                 ref={lotIconRef}
-                className={({ isActive }) => `text-cart-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""} ${lotOpen ? "open" : ""}`}
+                className={({ isActive }) => `text-cart-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""}`}
                 to="/checkout"
                 aria-label="Mi carrito"
               >
                 <div className="text-cart-title">Carrito ({lotCount})</div>
                 <div className="text-cart-total">{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</div>
               </NavLink>
-              {lotPreviewOpen && (
-                <div
-                  className="lot-preview"
-                  onMouseEnter={openLotPreview}
-                  onMouseLeave={closeLotPreviewWithDelay}
-                >
-                  <h4>Mi paquete:</h4>
-                  {cart.length === 0 ? (
-                    <p className="helper">No hay productos en el lote.</p>
-                  ) : (
-                    <>
-                      <div className="lot-preview-list">
-                        {cart.map((item) => (
-                          <div key={item.productId} className="lot-preview-item">
-                            <img src={item.image} alt={item.name} />
-                            <div className="lot-preview-info">
-                              <strong>{item.name}</strong>
-                              <span>{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(item.price * item.quantity)}</span>
-                              <div className="lot-preview-qty">
-                                <button
-                                  type="button"
-                                  onClick={() => updateCartQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                                  disabled={item.quantity <= 1}
-                                >
-                                  -
-                                </button>
-                                <span>{item.quantity}</span>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateCartQuantity(item.productId, Math.min(Number(item.stock) || 1, item.quantity + 1))
-                                  }
-                                  disabled={item.quantity >= (Number(item.stock) || 1)}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                            <button className="lot-preview-remove" type="button" onClick={() => removeFromCart(item.productId)}>
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="lot-preview-footer">
-                        <span>Total</span>
-                        <strong>{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</strong>
-                      </div>
-                      <div className="lot-preview-actions">
-                        <Link className="button lot-preview-go" to="/checkout">
-                          Ver mi paquete
-                        </Link>
-                        <Link className="button lot-preview-go secondary" to="/checkout?step=checkout">
-                          Continuar compra
-                        </Link>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
             <button
               className="ml-hamburger"

@@ -63,7 +63,19 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
         <Link to={`/producto/${product.id}`} className="card-link">
           <strong>{product.name}</strong>
         </Link>
-        <div className="price">{formatPrice(product.price)}</div>
+        <div className="price-display">
+          {product.discountPrice ? (
+            <>
+              <div className="original-price-crossed">{formatPrice(product.price)}</div>
+              <div className="discount-price-row">
+                <span className="price">{formatPrice(product.discountPrice)}</span>
+                <span className="discount-badge">{Math.ceil((1 - product.discountPrice / product.price) * 100)}% OFF</span>
+              </div>
+            </>
+          ) : (
+            <div className="price">{formatPrice(product.price)}</div>
+          )}
+        </div>
       </div>
 
       {showQty && (

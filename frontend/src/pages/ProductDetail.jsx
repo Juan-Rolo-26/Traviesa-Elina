@@ -114,9 +114,20 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
         </div>
         <div className="product-info">
           <h2>{product.name}</h2>
-          <p className="price">{formatPrice(product.price)}</p>
+          <div className="price-display">
+            {product.discountPrice ? (
+              <>
+                <div className="original-price-crossed">{formatPrice(product.price)}</div>
+                <div className="discount-price-row">
+                  <span className="price">{formatPrice(product.discountPrice)}</span>
+                  <span className="discount-badge">{Math.ceil((1 - product.discountPrice / product.price) * 100)}% OFF</span>
+                </div>
+              </>
+            ) : (
+              <div className="price">{formatPrice(product.price)}</div>
+            )}
+          </div>
           {product.description && <p>{product.description}</p>}
-          <div className="helper">Ancho: {product.width} cm · Alto: {product.height} cm · Peso: {product.weight} gr</div>
 
           {stock > 1 && (
             <div className="qty-control product-qty">

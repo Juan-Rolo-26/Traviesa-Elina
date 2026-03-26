@@ -69,7 +69,7 @@ function App() {
 
   React.useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      setIsScrolled(window.scrollY > 0);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -130,12 +130,9 @@ function App() {
         {
           productId: product.id,
           name: product.name,
-          price: product.price,
+          price: product.discountPrice ? product.discountPrice : product.price,
           quantity: safeQty,
           image: product.image,
-          width: product.width,
-          height: product.height,
-          weight: product.weight,
           stock: product.stock,
         },
       ];
@@ -327,7 +324,6 @@ function App() {
             <Link to="/" className="category-link">Deco</Link>
             <Link to="/" className="category-link">Alfombras</Link>
             <Link to="/" className="category-link">Cocina</Link>
-            <Link to="/" className="category-link">Otros</Link>
           </nav>
         </div>
 

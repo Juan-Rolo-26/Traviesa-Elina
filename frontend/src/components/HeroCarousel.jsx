@@ -5,9 +5,9 @@ import elDiaEsHoyVideo from "../assets/hero/el-dia-es-hoy.mp4";
 import promo20Off7 from "../assets/hero/20-off-7.mp4";
 import promo20OffFallback from "../assets/hero/20-off.mp4";
 import promoDelMesFallback from "../assets/hero/promo-del-mes.mp4";
-import imgwwm3 from "../assets/hero/Gemini_Generated_Image_wwm3mdwwm3mdwwm3.png";
-import imgrvdst4 from "../assets/hero/Gemini_Generated_Image_rvdst4rvdst4rvds.png";
-import imgAlmoadas from "../assets/hero/almoadas.jpg";
+import blanqueriaYBazarVideo from "../assets/hero/blanqueria_y_bazar.mp4";
+import disenoSinTituloVideo from "../assets/hero/diseno_sin_titulo.mp4";
+import renovaTuCamaVideo from "../assets/hero/renova_tu_cama.mp4";
 import "../styles/HeroCarousel.css";
 
 const AUTOPLAY_MS = 6000;
@@ -15,9 +15,9 @@ const INTERACTION_PAUSE_MS = 8000;
 
 function HeroCarousel() {
   const slides = [
-    { type: "image", src: imgwwm3, alt: "Alfombra Beige", durationMs: AUTOPLAY_MS },
-    { type: "image", src: imgrvdst4, alt: "Living y Almohadones", durationMs: AUTOPLAY_MS },
-    { type: "image", src: imgAlmoadas, alt: "Habitación Rayada", durationMs: AUTOPLAY_MS },
+    { type: "video", src: blanqueriaYBazarVideo, alt: "Blanqueria y bazar", durationMs: 5000 },
+    { type: "video", src: disenoSinTituloVideo, alt: "Diseño sin título", durationMs: 5000 },
+    { type: "video", src: renovaTuCamaVideo, alt: "Renova tu cama", durationMs: 5000 },
     { type: "video", src: promoDelMes2, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
     { type: "video", src: armaTuPaquete2, alt: "Arma tu paquete 2", durationMs: 8000 },
     { type: "video", src: elDiaEsHoyVideo, fallbackSrc: promoDelMesFallback, alt: "El dia es hoy", durationMs: AUTOPLAY_MS },

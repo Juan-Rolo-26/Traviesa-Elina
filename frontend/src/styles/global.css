@@ -602,6 +602,34 @@ button {
   font-size: 18px;
 }
 
+.price-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.original-price-crossed {
+  text-decoration: line-through;
+  color: var(--muted);
+  font-size: 0.85em;
+  font-weight: 500;
+  margin-bottom: -2px;
+}
+
+.discount-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discount-badge {
+  color: #109453;
+  background: #e9f6ef;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
 .qty-control {
   display: grid;
   grid-template-columns: 32px 1fr 32px;
@@ -2909,6 +2937,9 @@ html {
 
 .header-scrolled {
   background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-bottom: none !important;
 }
 
 .header-scrolled .ml-top-bar {
@@ -2923,10 +2954,12 @@ html {
 }
 
 .header-scrolled .ml-main-bar {
-  background: #ffffff !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
   padding: 10px 24px !important;
   min-height: 70px !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05) !important;
+  margin-top: 14px !important;
+  border-radius: 12px !important;
 }
 
 .header-scrolled .ml-logo-img {
@@ -2937,6 +2970,8 @@ html {
   background: rgba(255, 255, 255, 0.6) !important;
   backdrop-filter: blur(8px) !important;
   border-top-color: transparent !important;
+  margin-top: 10px !important;
+  border-bottom: 2px solid #E9BDC6 !important;
 }
 
 .header-scrolled .categories-nav {

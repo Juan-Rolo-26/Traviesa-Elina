@@ -5,9 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 const initialState = {
   name: "",
   price: "",
-  width: "",
-  height: "",
-  weight: "",
+  discountPrice: "",
   stock: "1",
   description: "",
 };
@@ -49,9 +47,7 @@ function AdminPanel({ token, onLogout }) {
         setForm({
           name: product.name || "",
           price: String(product.price ?? ""),
-          width: String(product.width ?? ""),
-          height: String(product.height ?? ""),
-          weight: String(product.weight ?? ""),
+          discountPrice: product.discountPrice ? String(product.discountPrice) : "",
           stock: String(product.stock ?? "1"),
           description: product.description || "",
         });
@@ -310,9 +306,7 @@ function AdminPanel({ token, onLogout }) {
           <h2>Completa los datos del producto</h2>
           <input name="name" placeholder="Nombre" value={form.name} onChange={handleChange} required />
           <input name="price" placeholder="Precio (ej: 14500)" value={form.price} onChange={handleChange} required />
-          <input name="width" placeholder="Ancho (cm)" value={form.width} onChange={handleChange} required />
-          <input name="height" placeholder="Alto (cm)" value={form.height} onChange={handleChange} required />
-          <input name="weight" placeholder="Peso (gr)" value={form.weight} onChange={handleChange} required />
+          <input name="discountPrice" placeholder="Precio descuento (opcional)" value={form.discountPrice} onChange={handleChange} />
           <input name="stock" placeholder="Stock (default 1)" value={form.stock} onChange={handleChange} />
           <textarea
             name="description"

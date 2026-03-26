@@ -89,8 +89,9 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
 
   const total = useMemo(() => {
     return cart.reduce((sum, item) => {
-      const match = (item.wholesaleOffers || []).find((o) => Number(o.quantity) === Number(item.quantity));
-      if (match) return sum + Number(match.price);
+      const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
+      const match = sortedOffers.find((o) => Number(item.quantity) >= Number(o.quantity));
+      if (match) return sum + Number(match.price) * Number(item.quantity);
       return sum + item.price * item.quantity;
     }, 0);
   }, [cart]);
@@ -480,16 +481,24 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                     <div className="cart-item-top">
                       <div className="cart-item-title-col">
                         <strong>{item.name}</strong>
-                        {((item.wholesaleOffers || []).find(o => Number(o.quantity) === Number(item.quantity))) && (
-                          <div style={{ fontSize: '11px', color: '#ff0000', marginTop: '2px', fontWeight: '700' }}>
-                            PRECIO MAYORISTA APLICADO
-                          </div>
-                        )}
+                        {(() => {
+                          const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
+                          const isWholesale = sortedOffers.some(o => Number(item.quantity) >= Number(o.quantity));
+                          if (isWholesale) {
+                            return (
+                              <div style={{ fontSize: '11px', color: '#ff0000', marginTop: '2px', fontWeight: '700' }}>
+                                PRECIO MAYORISTA APLICADO
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                       <strong className="cart-item-price-gold">
                         {(() => {
-                          const match = (item.wholesaleOffers || []).find(o => Number(o.quantity) === Number(item.quantity));
-                          return formatPrice(match ? match.price : (item.price * item.quantity));
+                          const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
+                          const match = sortedOffers.find(o => Number(item.quantity) >= Number(o.quantity));
+                          return formatPrice(match ? (Number(match.price) * Number(item.quantity)) : (item.price * item.quantity));
                         })()}
                       </strong>
                     </div>

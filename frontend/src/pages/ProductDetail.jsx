@@ -131,13 +131,13 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
 
           {product.isWholesale && product.wholesaleOffers?.length > 0 && (
             <div className="wholesale-offers-box">
-              <h3>Ofertas mayoristas:</h3>
+              <h3>Precios mayoristas:</h3>
               <table className="wholesale-table">
                 <tbody>
-                  {product.wholesaleOffers.map((offer, idx) => (
+                  {[...product.wholesaleOffers].sort((a, b) => a.quantity - b.quantity).map((offer, idx) => (
                     <tr key={idx}>
-                      <td>{offer.quantity} unidades</td>
-                      <td><strong>{formatPrice(offer.price)}</strong> total</td>
+                      <td>Comprando {offer.quantity} o más unidades:</td>
+                      <td><strong>{formatPrice(offer.price)}</strong> c/u</td>
                     </tr>
                   ))}
                 </tbody>

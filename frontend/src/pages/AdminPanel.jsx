@@ -353,15 +353,18 @@ function AdminPanel({ token, onLogout }) {
 
           {form.isWholesale && (
             <div className="wholesale-offers-list">
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Ofertas mayoristas:</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Ofertas mayoristas (Precios x unidad):</div>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px' }}>Si el cliente compra "X" o más unidades, el precio unitario cambia.</div>
               {(form.wholesaleOffers || []).map((offer, idx) => (
-                <div key={idx} className="offer-row">
-                  <input placeholder="Cant." value={offer.quantity} onChange={(e) => handleOfferChange(idx, 'quantity', e.target.value)} />
-                  <input placeholder="Precio" value={offer.price} onChange={(e) => handleOfferChange(idx, 'price', e.target.value)} />
+                <div key={idx} className="offer-row" style={{ alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', color: '#666' }}>+</span>
+                  <input placeholder="Cant." value={offer.quantity} onChange={(e) => handleOfferChange(idx, 'quantity', e.target.value)} style={{ width: '60px', flex: 'none' }} />
+                  <span style={{ fontSize: '12px', color: '#666' }}>unid. : $</span>
+                  <input placeholder="Precio u." value={offer.price} onChange={(e) => handleOfferChange(idx, 'price', e.target.value)} />
                   <button type="button" className="remove-offer" onClick={() => removeOffer(idx)}>×</button>
                 </div>
               ))}
-              <button type="button" className="add-offer-btn" onClick={addOffer}>Agregar oferta mayorista</button>
+              <button type="button" className="add-offer-btn" onClick={addOffer}>Agregar nueva escala (+unid. / precio x u.)</button>
             </div>
           )}
 

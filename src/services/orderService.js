@@ -76,9 +76,9 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
 
     const totalAmount = products.reduce((sum, product) => {
       const qty = quantityById.get(product.id) || 1;
-      const match = (product.wholesaleOffers || []).find((o) => o.quantity === qty);
-      if (match) return sum + match.price;
-      const unitPrice = product.discountPrice ?? product.price;
+      const sortedOffers = [...(product.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
+      const match = sortedOffers.find((o) => qty >= o.quantity);
+      const unitPrice = match ? match.price : (product.discountPrice ?? product.price);
       return sum + unitPrice * qty;
     }, 0);
 
@@ -98,8 +98,9 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
         items: {
           create: products.map((product) => {
             const qty = quantityById.get(product.id) || 1;
-            const match = (product.wholesaleOffers || []).find((o) => o.quantity === qty);
-            const unitPrice = match ? Math.floor(match.price / qty) : (product.discountPrice ?? product.price);
+            const sortedOffers = [...(product.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
+            const match = sortedOffers.find((o) => qty >= o.quantity);
+            const unitPrice = match ? match.price : (product.discountPrice ?? product.price);
             return {
               productId: product.id,
               productName: product.name,

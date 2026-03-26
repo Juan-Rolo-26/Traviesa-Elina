@@ -157,8 +157,9 @@ function App() {
   const clearCart = () => setCart([]);
   const previewTotal = useMemo(() => {
     return cart.reduce((sum, item) => {
-      const match = (item.wholesaleOffers || []).find((o) => Number(o.quantity) === Number(item.quantity));
-      if (match) return sum + Number(match.price);
+      const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
+      const match = sortedOffers.find((o) => Number(item.quantity) >= Number(o.quantity));
+      if (match) return sum + Number(match.price) * Number(item.quantity);
       return sum + item.price * item.quantity;
     }, 0);
   }, [cart]);

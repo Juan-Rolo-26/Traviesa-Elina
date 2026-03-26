@@ -404,6 +404,10 @@ button {
   border-radius: 8px;
 }
 
+.product-main {
+  position: relative;
+}
+
 .product-main img,
 .product-main video {
   width: 100%;
@@ -596,6 +600,7 @@ button {
   display: block;
   overflow: hidden;
   border-radius: 0;
+  position: relative;
 }
 
 .card-img-link img {
@@ -3296,13 +3301,13 @@ html {
 /* Wholesale System */
 .wholesale-badge {
   position: absolute;
-  bottom: 12px;
+  bottom: 0;
   left: 0;
   background: #ff0000;
   color: #fff;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 800;
   text-transform: uppercase;
   z-index: 5;
 }

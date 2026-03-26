@@ -592,6 +592,25 @@ button {
   z-index: 2;
 }
 
+.card-img-link {
+  display: block;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.card-img-link img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  object-fit: cover;
+  background: #fdfdfd;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.card:hover .card-img-link img {
+  transform: scale(1.05);
+}
+
 .card img {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -688,18 +707,19 @@ button {
 }
 
 .button {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 10px 12px;
-  border-radius: 10px;
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 12px 24px;
+  border-radius: 99px !important;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.15s ease, background 0.15s ease;
+  font-family: 'Montserrat', sans-serif;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .button:hover {
-  background: var(--primary-dark);
+  background: #333333 !important;
   transform: translateY(-1px);
 }
 

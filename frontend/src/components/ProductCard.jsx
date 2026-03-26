@@ -56,7 +56,7 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
           ×
         </button>
       )}
-      <Link to={`/producto/${product.id}`} className="card-link">
+      <Link to={`/producto/${product.id}`} className="card-img-link">
         <img src={product.image} alt={product.name} />
       </Link>
       <div>

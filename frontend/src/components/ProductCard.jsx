@@ -92,8 +92,8 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
 
       {warning && <div className="helper">{warning}</div>}
 
-      <button className="button" onClick={handleAdd}>
-        {inCart ? "Actualizar paquete" : "Agregar al paquete"}
+      <button className="button card-buy-btn" onClick={handleAdd}>
+        Comprar
       </button>
     </article>
   );

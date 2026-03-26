@@ -649,6 +649,17 @@ button {
   font-weight: 700;
 }
 
+.card-buy-btn {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-radius: 99px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  width: 100%;
+  margin-top: 4px;
+}
+
 .qty-control {
   display: grid;
   grid-template-columns: 32px 1fr 32px;
@@ -1181,7 +1192,6 @@ body {
 }
 
 .form,
-.card,
 .table-row,
 .cart-item,
 .hero,

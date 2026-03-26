@@ -47,6 +47,7 @@ model Product {
   price         Int
   discountPrice Int?
   category      String?
+  isWholesale   Boolean  @default(false)
   stock       Int      @default(1)
   image       String
   description String?
@@ -54,7 +55,17 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   media       ProductMedia[]
+  wholesaleOffers WholesaleOffer[]
   orderItems  OrderItem[]
+}
+
+model WholesaleOffer {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  createdAt DateTime @default(now())
 }
 
 model ProductMedia {

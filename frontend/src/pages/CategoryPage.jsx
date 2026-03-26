@@ -41,14 +41,13 @@ function CategoryPage({ onAdd, cart, isAdmin }) {
     <main className="category-page">
       <header className="category-header">
         <div className="breadcrumb">Inicio {' > '} {categoryName}</div>
-        <h1 className="category-title">{categoryName}</h1>
       </header>
 
       <div className="category-container">
         {/* Sidebar space for filters (as requested, but no price filter) */}
         <aside className="category-filters">
           <h3>Filtrar por</h3>
-          {/* Espacio reservado igual a la captura */}
+          <h2 className="category-title-sidebar">{categoryName}</h2>
         </aside>
 
         <section className="category-content">

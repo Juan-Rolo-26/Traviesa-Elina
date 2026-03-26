@@ -110,6 +110,7 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
             ) : (
               <img src={selectedMedia?.url} alt={product.name} />
             )}
+            {product.isWholesale && <span className="wholesale-badge">Mayorista</span>}
           </div>
         </div>
         <div className="product-info">
@@ -127,10 +128,27 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
               <div className="price">{formatPrice(product.price)}</div>
             )}
           </div>
+
+          {product.isWholesale && product.wholesaleOffers?.length > 0 && (
+            <div className="wholesale-offers-box">
+              <h3>Ofertas mayoristas:</h3>
+              <table className="wholesale-table">
+                <tbody>
+                  {product.wholesaleOffers.map((offer, idx) => (
+                    <tr key={idx}>
+                      <td>{offer.quantity} unidades</td>
+                      <td><strong>{formatPrice(offer.price)}</strong> total</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {product.description && <p>{product.description}</p>}
 
-          {stock > 1 && (
-            <div className="qty-control product-qty">
+          <div className="detail-actions-row">
+            <div className="qty-control">
               <button type="button" onClick={handleMinus} disabled={qty <= 1}>
                 −
               </button>
@@ -139,13 +157,13 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
                 +
               </button>
             </div>
-          )}
+
+            <button className="button product-add-btn" type="button" onClick={handleAdd}>
+              Comprar
+            </button>
+          </div>
 
           {warning && <div className="helper">{warning}</div>}
-
-          <button className="button product-add" type="button" onClick={handleAdd}>
-            Agregar al paquete
-          </button>
           {isMabelMode && (
             <button
               className="button secondary product-add"

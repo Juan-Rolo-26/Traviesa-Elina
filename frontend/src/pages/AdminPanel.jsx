@@ -7,6 +7,8 @@ const initialState = {
   price: "",
   discountPrice: "",
   category: "Blanqueria",
+  isWholesale: false,
+  wholesaleOffers: [],
   stock: "1",
   description: "",
 };
@@ -50,6 +52,8 @@ function AdminPanel({ token, onLogout }) {
           price: String(product.price || ""),
           discountPrice: product.discountPrice ? String(product.discountPrice) : "",
           category: product.category || "Blanqueria",
+          isWholesale: product.isWholesale || false,
+          wholesaleOffers: (product.wholesaleOffers || []).map((o) => ({ quantity: String(o.quantity), price: String(o.price) })),
           stock: String(product.stock ?? "1"),
           description: product.description || "",
         });
@@ -87,8 +91,24 @@ function AdminPanel({ token, onLogout }) {
   };
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    if (currentProduct) setIsDirty(true);
+  };
+
+  const handleOfferChange = (index, field, value) => {
+    const next = [...form.wholesaleOffers];
+    next[index] = { ...next[index], [field]: value };
+    setForm((prev) => ({ ...prev, wholesaleOffers: next }));
+    if (currentProduct) setIsDirty(true);
+  };
+
+  const addOffer = () => {
+    setForm((prev) => ({ ...prev, wholesaleOffers: [...prev.wholesaleOffers, { quantity: "", price: "" }] }));
+  };
+
+  const removeOffer = (index) => {
+    setForm((prev) => ({ ...prev, wholesaleOffers: prev.wholesaleOffers.filter((_, i) => i !== index) }));
     if (currentProduct) setIsDirty(true);
   };
 
@@ -138,7 +158,11 @@ function AdminPanel({ token, onLogout }) {
 
     const data = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== "" || key === "discountPrice" || key === "category" || key === "description") data.append(key, value);
+      if (key === "wholesaleOffers") {
+        data.append(key, JSON.stringify(value));
+      } else if (value !== "" || key === "discountPrice" || key === "category" || key === "description" || key === "isWholesale") {
+        data.append(key, value);
+      }
     });
     media.forEach((item) => item.file && data.append("media", item.file));
 
@@ -309,6 +333,7 @@ function AdminPanel({ token, onLogout }) {
           <input name="name" placeholder="Nombre" value={form.name} onChange={handleChange} required />
           <input name="price" placeholder="Precio (ej: 14500)" value={form.price} onChange={handleChange} required />
           <input name="discountPrice" placeholder="Precio descuento (opcional)" value={form.discountPrice} onChange={handleChange} />
+          <div style={{ marginBottom: '-8px', fontSize: '14px', color: '#666', fontWeight: '500' }}>Categoría:</div>
           <select name="category" value={form.category} onChange={handleChange} required>
             <option value="Blanqueria">Blanqueria</option>
             <option value="Bazar">Bazar</option>
@@ -316,6 +341,30 @@ function AdminPanel({ token, onLogout }) {
             <option value="Alfombras">Alfombras</option>
             <option value="Cocina">Cocina</option>
           </select>
+
+          <div className="wholesale-toggle-section">
+            <span style={{ fontSize: '14px', fontWeight: '500' }}>Producto Mayorista:</span>
+            <label className="switch">
+              <input type="checkbox" name="isWholesale" checked={form.isWholesale} onChange={handleChange} />
+              <span className="slider round"></span>
+            </label>
+            <span style={{ fontSize: '13px' }}>{form.isWholesale ? "Activado" : "Desactivado"}</span>
+          </div>
+
+          {form.isWholesale && (
+            <div className="wholesale-offers-list">
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Ofertas mayoristas:</div>
+              {(form.wholesaleOffers || []).map((offer, idx) => (
+                <div key={idx} className="offer-row">
+                  <input placeholder="Cant." value={offer.quantity} onChange={(e) => handleOfferChange(idx, 'quantity', e.target.value)} />
+                  <input placeholder="Precio" value={offer.price} onChange={(e) => handleOfferChange(idx, 'price', e.target.value)} />
+                  <button type="button" className="remove-offer" onClick={() => removeOffer(idx)}>×</button>
+                </div>
+              ))}
+              <button type="button" className="add-offer-btn" onClick={addOffer}>Agregar oferta mayorista</button>
+            </div>
+          )}
+
           <input name="stock" placeholder="Stock (default 1)" value={form.stock} onChange={handleChange} />
           <textarea
             name="description"

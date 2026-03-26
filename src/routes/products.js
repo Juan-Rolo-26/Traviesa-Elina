@@ -47,11 +47,16 @@ function normalizeProduct(product) {
     .sort((a, b) => a.position - b.position)
     .map((item) => ({ url: item.url, type: item.type, position: item.position }));
   const cover = media.find((item) => item.type === "image");
+  const wholesaleOffers = (product.wholesaleOffers || []).map((offer) => ({
+    ...offer,
+    price: formatCentsToNumber(offer.price),
+  }));
   return {
     ...product,
     price: formatCentsToNumber(product.price),
     discountPrice: product.discountPrice != null ? formatCentsToNumber(product.discountPrice) : null,
     media,
+    wholesaleOffers,
     image: cover?.url || product.image,
   };
 }
@@ -90,7 +95,7 @@ router.get("/", async (req, res) => {
     const products = await prisma.product.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      include: { media: true },
+      include: { media: true, wholesaleOffers: true },
     });
     return res.json(products.map(normalizeProduct));
   } catch (error) {
@@ -116,7 +121,10 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await prisma.product.findUnique({ where: { id }, include: { media: true } });
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: { media: true, wholesaleOffers: true },
+    });
     if (!product) return res.status(404).json({ error: "Not found" });
     return res.json(normalizeProduct(product));
   } catch (error) {
@@ -132,7 +140,7 @@ router.get("/:id", async (req, res) => {
 router.post("/", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
-    const { name, price, discountPrice, category, stock, description } = req.body;
+    const { name, price, discountPrice, category, stock, description, isWholesale, wholesaleOffers } = req.body;
     const files = req.files || [];
     if (!name || !price || files.length === 0) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -140,6 +148,8 @@ router.post("/", requireMabel, async (req, res) => {
     if (stock !== undefined && !Number.isFinite(Number(stock))) {
       return res.status(400).json({ error: "Stock must be a valid number" });
     }
+
+    const offersData = wholesaleOffers ? JSON.parse(wholesaleOffers) : [];
 
     const mediaItems = files.map((file, index) => ({
       url: `/uploads/${file.filename}`,
@@ -157,6 +167,7 @@ router.post("/", requireMabel, async (req, res) => {
         price: parsePriceToCents(price),
         discountPrice: discountPrice ? parsePriceToCents(discountPrice) : null,
         category: category || null,
+        isWholesale: isWholesale === "true",
         stock: stock ? Number(stock) : 1,
         description: description || null,
         image: cover?.url || "/uploads/placeholder.png",
@@ -167,8 +178,14 @@ router.post("/", requireMabel, async (req, res) => {
             position: item.position,
           })),
         },
+        wholesaleOffers: {
+          create: offersData.map((o) => ({
+            quantity: Number(o.quantity),
+            price: parsePriceToCents(o.price),
+          })),
+        },
       },
-      include: { media: true },
+      include: { media: true, wholesaleOffers: true },
     });
 
     return res.status(201).json(normalizeProduct(product));
@@ -187,7 +204,7 @@ router.put("/:id", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
     const payload = {};
-    const { name, price, discountPrice, category, stock, description, existingMedia } = req.body;
+    const { name, price, discountPrice, category, stock, description, isWholesale, wholesaleOffers, existingMedia } = req.body;
 
     if (name) payload.name = name;
     if (price) payload.price = parsePriceToCents(price);
@@ -202,6 +219,21 @@ router.put("/:id", requireMabel, async (req, res) => {
 
     if (category !== undefined) {
       payload.category = category === "" ? null : category;
+    }
+
+    if (isWholesale !== undefined) {
+      payload.isWholesale = isWholesale === "true";
+    }
+
+    if (wholesaleOffers !== undefined) {
+      const offersData = JSON.parse(wholesaleOffers);
+      payload.wholesaleOffers = {
+        deleteMany: {},
+        create: offersData.map((o) => ({
+          quantity: Number(o.quantity),
+          price: parsePriceToCents(o.price),
+        })),
+      };
     }
 
     if (stock !== undefined) payload.stock = Number(stock);

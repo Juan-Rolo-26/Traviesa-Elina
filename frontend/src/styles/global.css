@@ -3246,12 +3246,13 @@ html {
   margin-bottom: 12px;
 }
 
-.category-title {
-  font-size: 42px;
+.category-title-sidebar {
+  font-size: 32px;
   font-family: 'Migra', serif;
   font-weight: 800;
   margin: 0;
   color: #111;
+  margin-top: -10px;
 }
 
 .category-container {
@@ -3261,11 +3262,13 @@ html {
 }
 
 .category-filters h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  color: #888;
   margin-top: 0;
   margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .category-grid {
@@ -3288,5 +3291,196 @@ html {
   .category-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Wholesale System */
+.wholesale-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  background: #ff0000;
+  color: #fff;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  z-index: 5;
+}
+
+.wholesale-offers-box {
+  margin: 20px 0;
+  padding: 16px;
+  background: #fbfbfb;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+}
+
+.wholesale-offers-box h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  color: #333;
+}
+
+.wholesale-table {
+  width: 100%;
+  font-size: 14px;
+  border-collapse: collapse;
+}
+
+.wholesale-table td {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.wholesale-table tr:last-child td {
+  border-bottom: none;
+}
+
+.detail-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.detail-actions-row .qty-control {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 8px;
+  gap: 12px;
+}
+
+.detail-actions-row .qty-control button {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  width: 24px;
+  cursor: pointer;
+  color: #888;
+}
+
+.product-add-btn {
+  flex: 1;
+  height: 48px;
+  background: #000;
+  color: #fff;
+  border-radius: 99px;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Admin Toggle Switch */
+.wholesale-toggle-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #8bc34a;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #8bc34a;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.wholesale-offers-list {
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.offer-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.offer-row input {
+  flex: 1;
+}
+
+.remove-offer {
+  background: #fee;
+  color: #c00;
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.add-offer-btn {
+  width: 100%;
+  padding: 8px;
+  background: #eee;
+  border: 1px dashed #888;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 8px;
 }
 

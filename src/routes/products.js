@@ -50,6 +50,7 @@ function normalizeProduct(product) {
   return {
     ...product,
     price: formatCentsToNumber(product.price),
+    discountPrice: product.discountPrice != null ? formatCentsToNumber(product.discountPrice) : null,
     media,
     image: cover?.url || product.image,
   };
@@ -125,13 +126,10 @@ router.get("/:id", async (req, res) => {
 router.post("/", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
-    const { name, price, width, height, weight, stock, description } = req.body;
+    const { name, price, discountPrice, stock, description } = req.body;
     const files = req.files || [];
-    if (!name || !price || !width || !height || !weight || files.length === 0) {
+    if (!name || !price || files.length === 0) {
       return res.status(400).json({ error: "Missing required fields" });
-    }
-    if (![width, height, weight].every((value) => Number.isFinite(Number(value)))) {
-      return res.status(400).json({ error: "Width, height and weight must be valid numbers" });
     }
     if (stock !== undefined && !Number.isFinite(Number(stock))) {
       return res.status(400).json({ error: "Stock must be a valid number" });
@@ -151,9 +149,7 @@ router.post("/", requireMabel, async (req, res) => {
       data: {
         name,
         price: parsePriceToCents(price),
-        width: Number(width),
-        height: Number(height),
-        weight: Number(weight),
+        discountPrice: discountPrice ? parsePriceToCents(discountPrice) : null,
         stock: stock ? Number(stock) : 1,
         description: description || null,
         image: cover?.url || "/uploads/placeholder.png",
@@ -184,13 +180,11 @@ router.put("/:id", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
     const payload = {};
-    const { name, price, width, height, weight, stock, description, existingMedia } = req.body;
+    const { name, price, discountPrice, stock, description, existingMedia } = req.body;
 
     if (name) payload.name = name;
     if (price) payload.price = parsePriceToCents(price);
-    if (width) payload.width = Number(width);
-    if (height) payload.height = Number(height);
-    if (weight) payload.weight = Number(weight);
+    if (discountPrice !== undefined) payload.discountPrice = discountPrice ? parsePriceToCents(discountPrice) : null;
     if (stock !== undefined) payload.stock = Number(stock);
     if (description !== undefined) payload.description = description || null;
 

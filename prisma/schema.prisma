@@ -44,10 +44,8 @@ model Customer {
 model Product {
   id          String   @id @default(cuid())
   name        String
-  price       Int
-  width       Float
-  height      Float
-  weight      Float
+  price         Int
+  discountPrice Int?
   stock       Int      @default(1)
   image       String
   description String?

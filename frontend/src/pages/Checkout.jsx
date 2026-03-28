@@ -568,14 +568,20 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
                   return;
                 }
                 
-                if (customerProfile && hasStoredAddress(customerProfile)) {
-                  // If logged in and has address, step to checkout first to show summary
-                  // but we can also trigger initPayment if we want it fully automated.
-                  // The user said "directo al ingreso de tarjeta", so we skip contact form.
-                  setStep("checkout");
-                } else {
-                  setStep("checkout");
+            <button
+              className="button checkout-continue-btn"
+              type="button"
+              disabled={cart.length === 0}
+              onClick={() => {
+                if (!customerProfile && !isGuest) {
+                  onAuthOpen();
+                  return;
                 }
+                setStep("checkout");
+              }}
+            >
+              Continuar compra
+            </button>
               }}
             >
               Continuar compra
@@ -588,20 +594,22 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
 
       {step === "checkout" && (
         <div className="form checkout-contact-form">
-          {customerProfile && hasStoredAddress(customerProfile) && !editingShipping ? (
+          {customerProfile && customerProfile.phone && !editingShipping ? (
              <div className="summary-checkout-data">
                 <h2>Confirmar tu compra</h2>
                 <div className="summary-data-box">
                    <p><strong>Nombre:</strong> {form.customerName}</p>
                    <p><strong>Teléfono:</strong> {form.phone}</p>
-                   <p><strong>Entrega en:</strong> {buildAddressText(customerProfile)}</p>
+                   {customerProfile.address1 && (
+                     <p><strong>Entrega en:</strong> {buildAddressText(customerProfile)}</p>
+                   )}
                 </div>
                 <button 
                   className="auth-link" 
                   style={{ marginBottom: '20px', display: 'block', padding: 0 }} 
                   onClick={() => setEditingShipping(true)}
                 >
-                  Modificar datos de entrega
+                  Modificar datos
                 </button>
                 <form className="checkout-form" onSubmit={handleInitPayment}>
                   <button className="button checkout-finish-btn" type="submit" disabled={loading}>

@@ -202,12 +202,8 @@ function App() {
 
   const displayName = useMemo(() => {
     if (!customerProfile) return "";
-    return (
-      customerProfile.firstName ||
-      customerProfile.username ||
-      customerProfile.email?.split("@")[0] ||
-      ""
-    );
+    const fullName = customerProfile.firstName || customerProfile.username || "";
+    return fullName.split(" ")[0] || "";
   }, [customerProfile]);
 
   return (

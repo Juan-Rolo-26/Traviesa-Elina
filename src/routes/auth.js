@@ -276,6 +276,8 @@ router.post("/verify-registration", async (req, res) => {
         email: updated.email,
         username: updated.username,
         firstName: updated.firstName,
+        lastName: updated.lastName,
+        phone: updated.phone,
         role: updated.role,
       },
     });
@@ -315,6 +317,9 @@ router.post("/login", async (req, res) => {
         id: user.id,
         email: user.email,
         username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
         role: user.role,
       },
     });

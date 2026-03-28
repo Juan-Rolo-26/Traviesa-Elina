@@ -60,16 +60,13 @@ function hasDiagAccess(req) {
 }
 
 function smtpConfigFromEnv() {
-  const host = trimString(process.env.SMTP_HOST);
-  const portRaw = trimString(process.env.SMTP_PORT);
-  const user = trimString(process.env.SMTP_USER);
-  const pass = trimString(process.env.SMTP_PASS);
-  const from = trimString(process.env.SMTP_FROM) || user;
+  const host = process.env.SMTP_HOST || "smtp.gmail.com";
+  const port = Number(process.env.SMTP_PORT) || 465;
+  const user = process.env.SMTP_USER || "traviesabazar@gmail.com";
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.SMTP_FROM || user;
 
-  const port = Number(portRaw);
-  if (!host || !port || !user || !pass || !from) {
-    return null;
-  }
+  if (!pass) return null;
 
   return {
     host,
@@ -144,6 +141,8 @@ router.post("/register", async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email);
     const username = trimString(req.body?.username);
+    const firstName = trimString(req.body?.firstName);
+    const phone = trimString(req.body?.phone);
     const password = String(req.body?.password || "");
 
     if (!isValidEmail(email)) {
@@ -154,62 +153,94 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "La contrasena debe tener minimo 8 caracteres" });
     }
 
-    if (username && username.length < 3) {
-      return res.status(400).json({ error: "Nombre de usuario invalido" });
-    }
-
     const existingByEmail = await prisma.customer.findUnique({ where: { email } });
     if (existingByEmail) {
-      return res.status(409).json({ error: "El email ya existe" });
-    }
-
-    if (username) {
-      const existingByUsername = await prisma.customer.findUnique({
-        where: { username },
-        select: { id: true },
-      });
-      if (existingByUsername) {
-        return res.status(409).json({ error: "El nombre de usuario ya existe" });
+      if (existingByEmail.isVerified) {
+        return res.status(409).json({ error: "El email ya existe" });
       }
+      // If not verified, we'll recreate or update it later (for simplicity, we delete and recreate if not verified)
+      await prisma.customer.delete({ where: { email } });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const verificationCode = createSixDigitCode();
 
     const customer = await prisma.customer.create({
       data: {
         email,
-        username: username || null,
-        firstName: username || null,
+        username: username || firstName || null,
+        firstName: firstName || null,
+        phone: phone || null,
         passwordHash,
+        isVerified: false,
+        verificationCode,
         role: "customer",
       },
     });
 
-    const token = signUserToken(customer);
+    const smtp = smtpConfigFromEnv();
+    if (smtp) {
+      const transporter = nodemailer.createTransport({
+        host: smtp.host,
+        port: smtp.port,
+        secure: smtp.secure,
+        auth: smtp.auth,
+      });
+
+      await transporter.sendMail({
+        from: smtp.from,
+        to: email,
+        subject: "Codigo de verificacion - Traviesa",
+        text: `Tu codigo de verificacion es: ${verificationCode}`,
+      });
+    }
 
     return res.status(201).json({
+      message: "Codigo enviado",
+      email: customer.email,
+    });
+  } catch (error) {
+    console.error("[auth/register] error", error);
+    return res.status(500).json({ error: "No se pudo registrar el usuario" });
+  }
+});
+
+router.post("/verify-registration", async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const code = trimString(req.body?.code);
+
+    if (!email || !code) {
+      return res.status(400).json({ error: "Faltan datos" });
+    }
+
+    const user = await prisma.customer.findUnique({ where: { email } });
+    if (!user || user.verificationCode !== code) {
+      return res.status(400).json({ error: "Codigo invalido" });
+    }
+
+    const updated = await prisma.customer.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationCode: null,
+      },
+    });
+
+    const token = signUserToken(updated);
+
+    return res.json({
       token,
       user: {
-        id: customer.id,
-        email: customer.email,
-        username: customer.username,
-        role: customer.role,
+        id: updated.id,
+        email: updated.email,
+        username: updated.username,
+        firstName: updated.firstName,
+        role: updated.role,
       },
     });
   } catch (error) {
-    console.error("[auth/register] error", {
-      message: error?.message,
-      code: error?.code,
-      meta: error?.meta,
-      email: req.body?.email,
-      username: req.body?.username,
-    });
-
-    if (error?.code === "P2002") {
-      return res.status(409).json({ error: "El email o nombre de usuario ya existe" });
-    }
-
-    return res.status(500).json({ error: "No se pudo registrar el usuario" });
+    return res.status(500).json({ error: "Error al verificar" });
   }
 });
 
@@ -225,6 +256,10 @@ router.post("/login", async (req, res) => {
     const user = await prisma.customer.findUnique({ where: { email } });
     if (!user || !user.passwordHash) {
       return res.status(401).json({ error: "Credenciales invalidas" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ error: "email_not_verified" });
     }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
@@ -244,25 +279,7 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("[auth/login] error", {
-      message: error?.message,
-      code: error?.code,
-      meta: error?.meta,
-      email: req.body?.email,
-    });
-
-    if (hasDiagAccess(req)) {
-      return res.status(500).json({
-        error: "No se pudo iniciar sesion",
-        debug: {
-          message: error?.message || "unknown",
-          code: error?.code || null,
-          meta: error?.meta || null,
-          jwtSecretPresent: Boolean(trimString(process.env.JWT_SECRET)),
-        },
-      });
-    }
-
+    console.error("[auth/login] error", error);
     return res.status(500).json({ error: "No se pudo iniciar sesion" });
   }
 });

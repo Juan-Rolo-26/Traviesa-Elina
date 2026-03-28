@@ -1,20 +1,16 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  forgotPassword,
-  loginCustomer,
-  registerCustomer,
-  verifyResetCode,
-} from "../api";
+import { loginCustomer, registerCustomer, verifyRegistration } from "../api";
 
-function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAdmin, onLogout }) {
+function AuthModal({ open, onClose, onAuthSuccess, customerProfile, onLogout, showGuestOption, onGuestCheckout }) {
   const [tab, setTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [step, setStep] = useState(1); // 1: form, 2: verification code
 
   const [registerForm, setRegisterForm] = useState({
+    firstName: "",
+    phone: "",
     email: "",
-    username: "",
     password: "",
   });
 
@@ -23,26 +19,17 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
     password: "",
   });
 
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotCode, setForgotCode] = useState("");
-  const [forgotEmailSent, setForgotEmailSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
 
-  const displayName = useMemo(() => {
-    if (!customerProfile) return "";
-    return customerProfile.firstName || customerProfile.username || customerProfile.email?.split("@")[0] || "";
-  }, [customerProfile]);
-
-  const resetForgotState = () => {
-    setForgotCode("");
-    setForgotEmailSent(false);
+  const resetState = () => {
+    setError("");
+    setLoading(false);
+    setStep(1);
   };
 
   const switchTab = (nextTab) => {
-    setError("");
+    resetState();
     setTab(nextTab);
-    if (nextTab !== "forgot") {
-      resetForgotState();
-    }
   };
 
   const handleRegister = async (event) => {
@@ -50,16 +37,25 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
     setError("");
     setLoading(true);
     try {
-      const data = await registerCustomer(registerForm);
-      onAuthSuccess(data, "Registro exitoso");
+      await registerCustomer(registerForm);
+      setStep(2);
+    } catch (err) {
+      setError(err.message || "No se pudo registrar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (event) => {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const data = await verifyRegistration({ email: registerForm.email, code: verificationCode });
+      onAuthSuccess(data);
       onClose();
     } catch (err) {
-      console.error("[auth/register] failed", {
-        message: err?.message,
-        email: registerForm.email,
-        username: registerForm.username,
-      });
-      setError(err.message || "No se pudo registrar");
+      setError(err.message || "Codigo invalido");
     } finally {
       setLoading(false);
     }
@@ -71,43 +67,16 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
     setLoading(true);
     try {
       const data = await loginCustomer(loginForm);
-      onAuthSuccess(data, "Inicio de sesion exitoso");
+      onAuthSuccess(data);
       onClose();
     } catch (err) {
-      console.error("[auth/login] failed", {
-        message: err?.message,
-        email: loginForm.email,
-      });
-      setError(err.message || "No se pudo iniciar sesion");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleForgotEmail = async (event) => {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await forgotPassword({ email: forgotEmail });
-      setForgotEmailSent(true);
-    } catch (err) {
-      setError(err.message || "No se pudo enviar el codigo");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleForgotVerify = async (event) => {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const data = await verifyResetCode({ email: forgotEmail, code: forgotCode });
-      onAuthSuccess(data, "Inicio de sesion exitoso");
-      onClose();
-    } catch (err) {
-      setError(err.message || "Codigo invalido o vencido");
+      if (err.message === "email_not_verified") {
+        setRegisterForm({ ...registerForm, email: loginForm.email });
+        setError("Tu cuenta no esta verificada. Te enviamos un codigo a tu email.");
+        setStep(2);
+      } else {
+        setError(err.message || "Credenciales invalidas");
+      }
     } finally {
       setLoading(false);
     }
@@ -116,159 +85,134 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, customerIsAd
   if (!open) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" type="button" onClick={onClose} aria-label="Cerrar">
-          ✕
-        </button>
+    <div className="auth-modal-overlay" onClick={onClose}>
+      <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
+        <button className="auth-close-btn" onClick={onClose}>✕</button>
 
-        {customerProfile ? (
-          <div className="profile-view">
-            <h2>Hola {displayName}</h2>
-            <div className="profile-list">
-              <div><strong>Email:</strong> {customerProfile.email}</div>
-              <div><strong>Usuario:</strong> {customerProfile.username || customerProfile.firstName || ""}</div>
-              <div><strong>Nombre:</strong> {customerProfile.firstName || ""}</div>
-              <div><strong>Apellido:</strong> {customerProfile.lastName || ""}</div>
-              <div><strong>Provincia:</strong> {customerProfile.province || ""}</div>
-              <div><strong>Ciudad:</strong> {customerProfile.city || ""}</div>
-              <div><strong>Direccion 1:</strong> {customerProfile.address1 || ""}</div>
-              <div><strong>Direccion 2:</strong> {customerProfile.address2 || ""}</div>
-              <div><strong>Codigo postal:</strong> {customerProfile.postalCode || ""}</div>
-              <div><strong>Telefono:</strong> {customerProfile.phone || ""}</div>
-            </div>
-            {customerIsAdmin && (
-              <Link className="button secondary" to="/admin" onClick={onClose}>
-                Agregar productos
-              </Link>
-            )}
-            <button
-              className="button"
-              type="button"
-              onClick={() => {
-                onLogout();
-                onClose();
-              }}
+        <div className="auth-header">
+          {tab === "login" && <h2>Ingresa a tu cuenta</h2>}
+          {tab === "register" && <h2>Crea una cuenta</h2>}
+          {tab === "guest" && <h2>Checkout Rápido</h2>}
+        </div>
+
+        <div className="auth-nav-tabs">
+          <button 
+            className={`auth-tab ${tab === "login" ? "active" : ""}`} 
+            onClick={() => switchTab("login")}
+          >
+            Ingresar
+          </button>
+          <button 
+            className={`auth-tab ${tab === "register" ? "active" : ""}`} 
+            onClick={() => switchTab("register")}
+          >
+            Registrarme
+          </button>
+          {showGuestOption && (
+            <button 
+              className={`auth-tab ${tab === "guest" ? "active" : ""}`} 
+              onClick={() => switchTab("guest")}
             >
-              Cerrar sesion
+              Invitado
             </button>
-          </div>
-        ) : (
-          <>
-            <h2>Tu cuenta</h2>
+          )}
+        </div>
 
-            <div className="auth-tabs">
-              <button
-                type="button"
-                className={`button secondary ${tab === "register" ? "active" : ""}`}
-                onClick={() => switchTab("register")}
-              >
-                Registrarse
+        <div className="auth-body">
+          {tab === "login" && (
+            <form className="auth-form-pure" onSubmit={handleLogin}>
+              <input 
+                type="email" 
+                placeholder="Correo Electrónico" 
+                value={loginForm.email}
+                onChange={e => setLoginForm({...loginForm, email: e.target.value})}
+                required 
+              />
+              <input 
+                type="password" 
+                placeholder="Contraseña" 
+                value={loginForm.password}
+                onChange={e => setLoginForm({...loginForm, password: e.target.value})}
+                required 
+              />
+              <button type="button" className="auth-forgot-link">Olvidé mi contraseña</button>
+              <button type="submit" className="auth-main-btn" disabled={loading}>
+                {loading ? "CARGANDO..." : "ENTRAR"}
               </button>
-              <button
-                type="button"
-                className={`button secondary ${tab === "login" ? "active" : ""}`}
-                onClick={() => switchTab("login")}
-              >
-                Iniciar sesion
+            </form>
+          )}
+
+          {tab === "register" && (
+            <>
+              {step === 1 ? (
+                <form className="auth-form-pure" onSubmit={handleRegister}>
+                  <input 
+                    type="text" 
+                    placeholder="Nombre Completo" 
+                    value={registerForm.firstName}
+                    onChange={e => setRegisterForm({...registerForm, firstName: e.target.value})}
+                    required 
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Teléfono" 
+                    value={registerForm.phone}
+                    onChange={e => setRegisterForm({...registerForm, phone: e.target.value})}
+                    required 
+                  />
+                  <input 
+                    type="email" 
+                    placeholder="Correo Electrónico" 
+                    value={registerForm.email}
+                    onChange={e => setRegisterForm({...registerForm, email: e.target.value})}
+                    required 
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="Contraseña" 
+                    value={registerForm.password}
+                    onChange={e => setRegisterForm({...registerForm, password: e.target.value})}
+                    required 
+                  />
+                  <button type="submit" className="auth-main-btn" disabled={loading}>
+                    {loading ? "PROCESANDO..." : "CREAR CUENTA"}
+                  </button>
+                </form>
+              ) : (
+                <form className="auth-form-pure" onSubmit={handleVerify}>
+                  <div className="auth-verify-msg">
+                    <strong>¡Estás a un paso de crear tu cuenta!</strong>
+                    <span>Te enviamos un código a <strong>{registerForm.email}</strong> para que valides tu email.</span>
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="Código de 6 dígitos" 
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={e => setVerificationCode(e.target.value)}
+                    required 
+                  />
+                  <button type="submit" className="auth-main-btn" disabled={loading}>
+                    {loading ? "VERIFICANDO..." : "VALIDAR CÓDIGO"}
+                  </button>
+                </form>
+              )}
+            </>
+          )}
+
+          {tab === "guest" && (
+            <form className="auth-form-pure" onSubmit={(e) => { e.preventDefault(); onGuestCheckout(); }}>
+              <input type="text" placeholder="Nombre Completo" required />
+              <input type="text" placeholder="Teléfono" required />
+              <input type="email" placeholder="Correo Electrónico" required />
+              <button type="submit" className="auth-main-btn">
+                CONTINUAR COMO INVITADO
               </button>
-            </div>
-
-            {tab === "register" && (
-              <form className="auth-form" onSubmit={handleRegister}>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={registerForm.email}
-                  onChange={(event) => setRegisterForm((prev) => ({ ...prev, email: event.target.value }))}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Nombre de usuario"
-                  value={registerForm.username}
-                  onChange={(event) => setRegisterForm((prev) => ({ ...prev, username: event.target.value }))}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Contrasena (minimo 8)"
-                  value={registerForm.password}
-                  onChange={(event) => setRegisterForm((prev) => ({ ...prev, password: event.target.value }))}
-                  minLength={8}
-                  required
-                />
-                <button className="button" type="submit" disabled={loading}>
-                  {loading ? "Procesando..." : "Registrarse"}
-                </button>
-              </form>
-            )}
-
-            {tab === "login" && (
-              <form className="auth-form" onSubmit={handleLogin}>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={loginForm.email}
-                  onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Contrasena"
-                  value={loginForm.password}
-                  onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
-                  required
-                />
-                <button className="button" type="submit" disabled={loading}>
-                  {loading ? "Procesando..." : "Iniciar sesion"}
-                </button>
-                <button className="auth-link" type="button" onClick={() => switchTab("forgot")}>
-                  Olvide mi contrasena
-                </button>
-              </form>
-            )}
-
-            {tab === "forgot" && (
-              <>
-                {!forgotEmailSent ? (
-                  <form className="auth-form" onSubmit={handleForgotEmail}>
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={forgotEmail}
-                      onChange={(event) => setForgotEmail(event.target.value)}
-                      required
-                    />
-                    <button className="button" type="submit" disabled={loading}>
-                      {loading ? "Enviando..." : "Enviar codigo"}
-                    </button>
-                    <button className="auth-link" type="button" onClick={() => switchTab("login")}>
-                      Volver a iniciar sesion
-                    </button>
-                  </form>
-                ) : (
-                  <form className="auth-form" onSubmit={handleForgotVerify}>
-                    <p className="helper">Ingresa el codigo de 6 digitos que enviamos a tu email.</p>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="Codigo"
-                      value={forgotCode}
-                      onChange={(event) => setForgotCode(event.target.value)}
-                      required
-                    />
-                    <button className="button" type="submit" disabled={loading}>
-                      {loading ? "Verificando..." : "Verificar codigo"}
-                    </button>
-                  </form>
-                )}
-              </>
-            )}
-
-            {error && <p className="auth-error">{error}</p>}
-          </>
-        )}
+            </form>
+          )}
+          
+          {error && <div className="auth-error-msg">{error}</div>}
+        </div>
       </div>
     </div>
   );

@@ -14,6 +14,16 @@ import routeLoaderAnimation from "./assets/route-loader.json";
 function App() {
   const [cart, setCart] = useState([]);
   const [mabelToken, setMabelToken] = useState(() => localStorage.getItem("mabelToken"));
+  const [customerToken, setCustomerToken] = useState(() => localStorage.getItem("customerToken"));
+  const [customerProfile, setCustomerProfile] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("customerProfile") || "null");
+    } catch (_) {
+      return null;
+    }
+  });
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [checkoutAsGuest, setCheckoutAsGuest] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [lotPulse, setLotPulse] = useState(false);
@@ -33,7 +43,7 @@ function App() {
   const startRouteLoader = React.useCallback(() => {
     if (routeTimerRef.current) clearTimeout(routeTimerRef.current);
     setRouteLoading(true);
-    routeTimerRef.current = setTimeout(() => setRouteLoading(false), 2000);
+    routeTimerRef.current = setTimeout(() => setRouteLoading(false), 1500);
   }, []);
 
   const openLotPreview = React.useCallback(() => {
@@ -174,6 +184,32 @@ function App() {
     setMabelToken(null);
   };
 
+  const handleAuthSuccess = (data) => {
+    setCustomerToken(data.token);
+    setCustomerProfile(data.user);
+    setCheckoutAsGuest(false);
+    localStorage.setItem("customerToken", data.token);
+    localStorage.setItem("customerProfile", JSON.stringify(data.user));
+  };
+
+  const handleLogout = () => {
+    setCustomerToken(null);
+    setCustomerProfile(null);
+    setCheckoutAsGuest(false);
+    localStorage.removeItem("customerToken");
+    localStorage.removeItem("customerProfile");
+  };
+
+  const displayName = useMemo(() => {
+    if (!customerProfile) return "";
+    return (
+      customerProfile.firstName ||
+      customerProfile.username ||
+      customerProfile.email?.split("@")[0] ||
+      ""
+    );
+  }, [customerProfile]);
+
   return (
     <div className="container">
       <header className={`header ml-header ${isScrolled ? "header-scrolled" : ""}`}>
@@ -237,6 +273,31 @@ function App() {
             <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/mis-compras">
               Mis compras
             </NavLink>
+
+            <div className="ml-auth-trigger" onClick={() => setAuthModalOpen(true)}>
+              <div className="ml-auth-circle">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V18h14v-1.5c0-2.33-4.67-3.5-7-3.5z" />
+                </svg>
+              </div>
+              <div className="ml-auth-text">
+                {!customerProfile ? (
+                  <>
+                    <strong>Entrá /</strong>
+                    <span>Registráte</span>
+                  </>
+                ) : (
+                  <>
+                    <strong>¡Hola, {displayName}!</strong>
+                    <span onClick={(e) => {
+                      e.stopPropagation();
+                      handleLogout();
+                    }}>Cerrar sesión</span>
+                  </>
+                )}
+              </div>
+            </div>
+
             <div>
               <NavLink
                 ref={lotIconRef}
@@ -305,9 +366,10 @@ function App() {
                 onQtyChange: updateCartQuantity,
               }))}
               onClear={clearCart}
-              customerToken={null}
-              customerProfile={null}
-              onCustomerUpdate={() => {}}
+              customerToken={customerToken}
+              customerProfile={customerProfile}
+              onAuthOpen={() => setAuthModalOpen(true)}
+              isGuest={checkoutAsGuest}
             />
           }
         />
@@ -327,7 +389,7 @@ function App() {
       {routeLoading && (
         <div className="route-loader-backdrop">
           <div className="route-loader" aria-label="Cargando">
-            <Lottie animationData={routeLoaderAnimation} loop autoplay />
+            <div className="lds-heart"><div></div></div>
           </div>
         </div>
       )}
@@ -364,8 +426,22 @@ function App() {
           </NavLink>
         </nav>
       </aside>
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        customerProfile={customerProfile}
+        onAuthSuccess={handleAuthSuccess}
+        onLogout={handleLogout}
+        onGuestCheckout={() => {
+          setCheckoutAsGuest(true);
+          setAuthModalOpen(false);
+          navigate("/checkout");
+        }}
+        showGuestOption={location.pathname === "/checkout" && !customerProfile}
+      />
     </div>
   );
 }
 
+import AuthModal from "./components/AuthModal";
 export default App;

@@ -38,7 +38,7 @@ function isValidArgentinaPhone(phone) {
   return digits.length >= 10 && digits.length <= 13;
 }
 
-function Checkout({ cart, onClear, customerToken, customerProfile }) {
+function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, isGuest }) {
   const location = useLocation();
   const [step, setStep] = useState("cart");
   const [form, setForm] = useState({
@@ -558,14 +558,28 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
                   <span>TOTAL</span>
                   <strong className="cart-item-price-gold total-big">{formatPrice(total)}</strong>
                 </div>
-                <button
-                  className="button checkout-continue-btn"
-                  type="button"
-                  disabled={cart.length === 0}
-                  onClick={() => setStep("checkout")}
-                >
-                  Continuar compra
-                </button>
+            <button
+              className="button checkout-continue-btn"
+              type="button"
+              disabled={cart.length === 0}
+              onClick={() => {
+                if (!customerProfile && !isGuest) {
+                  onAuthOpen();
+                  return;
+                }
+                
+                if (customerProfile && hasStoredAddress(customerProfile)) {
+                  // If logged in and has address, step to checkout first to show summary
+                  // but we can also trigger initPayment if we want it fully automated.
+                  // The user said "directo al ingreso de tarjeta", so we skip contact form.
+                  setStep("checkout");
+                } else {
+                  setStep("checkout");
+                }
+              }}
+            >
+              Continuar compra
+            </button>
               </div>
             </div>
           </div>
@@ -574,29 +588,55 @@ function Checkout({ cart, onClear, customerToken, customerProfile }) {
 
       {step === "checkout" && (
         <div className="form checkout-contact-form">
-          <h2>Contacto</h2>
-          <form className="checkout-form" onSubmit={handleInitPayment}>
+          {customerProfile && hasStoredAddress(customerProfile) && !editingShipping ? (
+             <div className="summary-checkout-data">
+                <h2>Confirmar tu compra</h2>
+                <div className="summary-data-box">
+                   <p><strong>Nombre:</strong> {form.customerName}</p>
+                   <p><strong>Teléfono:</strong> {form.phone}</p>
+                   <p><strong>Entrega en:</strong> {buildAddressText(customerProfile)}</p>
+                </div>
+                <button 
+                  className="auth-link" 
+                  style={{ marginBottom: '20px', display: 'block', padding: 0 }} 
+                  onClick={() => setEditingShipping(true)}
+                >
+                  Modificar datos de entrega
+                </button>
+                <form className="checkout-form" onSubmit={handleInitPayment}>
+                  <button className="button checkout-finish-btn" type="submit" disabled={loading}>
+                    {loading ? "Preparando pago..." : "Finalizar compra"}
+                  </button>
+                </form>
+             </div>
+          ) : (
             <>
-              <input
-                name="customerName"
-                placeholder="Nombre y apellido"
-                value={form.customerName}
-                onChange={handleChange}
-                required
-              />
-              <input
-                name="phone"
-                placeholder="Telefono"
-                value={form.phone}
-                onChange={handleChange}
-                inputMode="numeric"
-                required
-              />
+              <h2>Contacto</h2>
+              <form className="checkout-form" onSubmit={handleInitPayment}>
+                <>
+                  <input
+                    name="customerName"
+                    placeholder="Nombre y apellido"
+                    value={form.customerName}
+                    onChange={handleChange}
+                    required
+                  />
+                  <input
+                    name="phone"
+                    placeholder="Telefono"
+                    value={form.phone}
+                    onChange={handleChange}
+                    inputMode="numeric"
+                    required
+                  />
+                </>
+                {/* Reutilizando inputs de direccion que podrían estar ocultos/visibles segun setup previo */}
+                <button className="button checkout-finish-btn" type="submit" disabled={loading}>
+                  {loading ? "Preparando pago..." : "Finalizar compra"}
+                </button>
+              </form>
             </>
-            <button className="button checkout-finish-btn" type="submit" disabled={loading}>
-              {loading ? "Preparando pago..." : "Finalizar compra"}
-            </button>
-          </form>
+          )}
           {status && <p className="helper">{status}</p>}
         </div>
       )}

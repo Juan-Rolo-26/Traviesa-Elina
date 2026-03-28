@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import promoDelMes2 from "../assets/hero/promo-del-mes-2.mp4";
 import armaTuPaquete2 from "../assets/hero/arma-tu-paquete-2.mp4";
-import elDiaEsHoyVideo from "../assets/hero/el-dia-es-hoy.mp4";
 import promo20Off7 from "../assets/hero/20-off-7.mp4";
 import promo20OffFallback from "../assets/hero/20-off.mp4";
 import promoDelMesFallback from "../assets/hero/promo-del-mes.mp4";
@@ -20,7 +19,6 @@ function HeroCarousel() {
     { type: "video", src: renovaTuCamaVideo, alt: "Renova tu cama", durationMs: 5000 },
     { type: "video", src: promoDelMes2, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
     { type: "video", src: armaTuPaquete2, alt: "Arma tu paquete 2", durationMs: 8000 },
-    { type: "video", src: elDiaEsHoyVideo, fallbackSrc: promoDelMesFallback, alt: "El dia es hoy", durationMs: AUTOPLAY_MS },
     { type: "video", src: promo20Off7, fallbackSrc: promo20OffFallback, alt: "Promo 20 por ciento off 7", durationMs: 8000 },
   ];
 

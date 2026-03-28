@@ -30,6 +30,7 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
   const province = dc.province || "CÓRDOBA";
   const city = dc.city || "CÓRDOBA";
   const address1 = dc.address1 || "RECUPERAR EN LOCAL";
+  const address2 = dc.address2 || null;
   const postalCode = dc.postalCode || "5000";
   const deliveryMethod = dc.deliveryMethod || "PICKUP";
 

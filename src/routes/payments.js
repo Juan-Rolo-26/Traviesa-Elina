@@ -105,7 +105,7 @@ router.post("/init", optionalCustomer, async (req, res) => {
     const computedTotal = formatCentsToNumber(order.totalAmount);
     const requestedTotal = Number(totalAmount);
     if (requestedTotal && Math.abs(requestedTotal - computedTotal) > 0.01) {
-      return res.status(400).json({ error: "Total mismatch" });
+      return res.status(400).json({ error: `Total mismatch: DB ${computedTotal} vs REQ ${requestedTotal}` });
     }
 
     let savedPaymentMethods = [];

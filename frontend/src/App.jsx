@@ -164,7 +164,11 @@ function App() {
     );
   };
 
-  const clearCart = () => setCart([]);
+  const clearCartAndGuest = () => {
+    setCart([]);
+    setGuestData(null);
+  };
+
   const previewTotal = useMemo(() => {
     return cart.reduce((sum, item) => {
       const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
@@ -356,12 +360,8 @@ function App() {
           path="/checkout"
           element={
             <Checkout
-              cart={cart.map((item) => ({
-                ...item,
-                onRemove: removeFromCart,
-                onQtyChange: updateCartQuantity,
-              }))}
-              onClear={clearCart}
+              cart={cart}
+              onClear={clearCartAndGuest}
               customerToken={customerToken}
               customerProfile={customerProfile}
               onAuthOpen={() => setAuthModalOpen(true)}

@@ -94,7 +94,7 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
       {warning && <div className="helper">{warning}</div>}
 
       <button className="button card-buy-btn" onClick={handleAdd}>
-        Comprar
+        {showQty ? "Agregar al carrito" : "Comprar"}
       </button>
     </article>
   );

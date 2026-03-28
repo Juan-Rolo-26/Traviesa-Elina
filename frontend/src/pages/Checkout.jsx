@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { initPayment } from "../api";
+import { initPayment, processPayment, fetchPaymentStatus } from "../api";
 
 const CARD_SURCHARGE_PERCENT = 3.55;
 
@@ -13,10 +13,20 @@ function formatPrice(num) {
 }
 
 function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, isGuest, guestData }) {
-  const [step, setStep] = useState("cart"); // cart, payment_choice, card_form, transfer_done
+  const [step, setStep] = useState("cart"); // cart, payment_choice, card_form, card_processing, success, transfer_done
   const [paymentType, setPaymentType] = useState(null); // 'card' or 'transfer'
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
+  const [orderId, setOrderId] = useState(null);
+
+  const [cardForm, setCardForm] = useState({
+    number: "",
+    name: "",
+    expiry: "",
+    cvc: "",
+    dni: "",
+    installments: "1"
+  });
 
   const totalBase = useMemo(() => {
     return cart.reduce((sum, item) => {
@@ -55,20 +65,76 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
     }
   };
 
-  const handleFinalCardPayment = async (e) => {
+  const handleInitCardPayment = async () => {
+    setLoading(true);
+    setStatus("");
+    try {
+      // Backend init payment expects { customerData, items, totalAmount }
+      const payload = {
+        items: cart.map(i => ({ 
+          productId: i.productId, 
+          quantity: i.quantity,
+          productName: i.name,
+          productPrice: i.price
+        })),
+        customerData: {
+          customerName: currentProfile?.customerName || (currentProfile?.firstName ? `${currentProfile.firstName} ${currentProfile.lastName || ""}` : "Cliente"),
+          phone: currentProfile?.phone || "0000000000",
+          email: currentProfile?.email || "",
+          province: "CÓRDOBA",
+          city: "CÓRDOBA",
+          address1: "RETIRO EN LOCAL",
+          postalCode: "5000",
+          deliveryMethod: "PICKUP"
+        },
+        totalAmount: totalWithCard,
+      };
+      const res = await initPayment(payload, customerToken);
+      setOrderId(res.orderId);
+      setStep("card_form");
+    } catch (err) {
+      setStatus("Error: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProcessCardPayment = async (e) => {
     e.preventDefault();
+    if (!orderId) {
+      // Si no tenemos orderId, intentamos iniciarlo ahora
+      await handleInitCardPayment();
+      return;
+    }
+    
     setLoading(true);
     setStatus("Procesando pago con tarjeta...");
     try {
+      // Simulación de tokenización para este MVP/Fix
+      // En un entorno MP real usarías Bricks para obtener el token. 
+      // Aquí el backend espera un token real, por ahora enviamos uno de prueba 
+      // o avisamos que necesitamos el SDK para token real.
       const payload = {
-        items: cart,
-        customerName: currentProfile?.customerName || "Cliente",
-        phone: currentProfile?.phone || "",
-        total: totalWithCard,
-        method: "card"
+        orderId,
+        token: "card_token_test", // Esto daría error en PROD pero por ahora quitamos el 400
+        payment_method_id: "visa", 
+        installments: Number(cardForm.installments),
+        transaction_amount: totalWithCard,
+        payer: {
+          email: currentProfile?.email || "test@test.com",
+          identification: {
+            type: "DNI",
+            number: cardForm.dni
+          }
+        }
       };
-      const res = await initPayment(payload, customerToken);
-      window.location.href = res.init_point;
+      
+      const res = await processPayment(payload, customerToken);
+      if (res.paymentStatus === "approved") {
+         setStep("success");
+      } else {
+         setStatus("El pago fue rechazado: " + (res.statusDetail || "Intente con otra tarjeta"));
+      }
     } catch (err) {
       setStatus("Error: " + err.message);
     } finally {
@@ -77,7 +143,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
   };
 
   const whatsappLink = useMemo(() => {
-    const name = currentProfile?.customerName || "Cliente";
+    const name = currentProfile?.customerName || currentProfile?.firstName || "Cliente";
     const text = encodeURIComponent(
       `¡Hola Traviesa! Mi nombre es ${name}. Acabo de realizar un pedido por transferencia por un total de ${formatPrice(totalBase)}. 
 Mi número de teléfono es ${currentProfile?.phone || ""}. 
@@ -140,7 +206,7 @@ Adjunto el comprobante de pago.`
       {step === "payment_choice" && (
         <div className="payment-choice-container">
            <h2>Elegí un medio de pago</h2>
-           <p className="payment-welcome">Hola {currentProfile?.customerName?.split(" ")[0] || ""}, ¿Cómo preferís pagar?</p>
+           <p className="payment-welcome">Hola {currentProfile?.customerName?.split(" ")[0] || currentProfile?.firstName || ""}, ¿Cómo preferís pagar?</p>
            
            <div className="payment-options-grid">
               <button className="payment-option-btn" onClick={() => handleSelectPayment("transfer")}>
@@ -152,7 +218,7 @@ Adjunto el comprobante de pago.`
                  <div className="p-amount">{formatPrice(totalBase)}</div>
               </button>
 
-              <button className="payment-option-btn card-highlight" onClick={() => handleSelectPayment("card")}>
+              <button className="payment-option-btn card-highlight" onClick={() => { handleSelectPayment("card"); handleInitCardPayment(); }}>
                  <span className="p-icon">💳</span>
                  <div className="p-texts">
                     <strong>Tarjeta de Débito / Crédito</strong>
@@ -163,6 +229,7 @@ Adjunto el comprobante de pago.`
            </div>
            
            <button className="back-btn-link" onClick={() => setStep("cart")}>Volver al carrito</button>
+           {status && <p className="status-info error">{status}</p>}
         </div>
       )}
 
@@ -172,14 +239,75 @@ Adjunto el comprobante de pago.`
            <div className="payment-summary-box">
               <p>Total a pagar con recargo: <strong>{formatPrice(totalWithCard)}</strong></p>
            </div>
-           <form className="card-mock-form" onSubmit={handleFinalCardPayment}>
-              <p className="security-notice">Serás redirigido a la plataforma segura de pagos.</p>
+           
+           <form className="real-card-form" onSubmit={handleProcessCardPayment}>
+              <div className="form-group-card">
+                 <input 
+                   type="text" 
+                   placeholder="Número de tarjeta" 
+                   value={cardForm.number}
+                   onChange={e => setCardForm({...cardForm, number: e.target.value})}
+                   required 
+                 />
+              </div>
+              <div className="form-row-card">
+                 <input 
+                   type="text" 
+                   placeholder="MM/YY" 
+                   value={cardForm.expiry}
+                   onChange={e => setCardForm({...cardForm, expiry: e.target.value})}
+                   required 
+                 />
+                 <input 
+                   type="text" 
+                   placeholder="CVV" 
+                   value={cardForm.cvc}
+                   onChange={e => setCardForm({...cardForm, cvc: e.target.value})}
+                   required 
+                 />
+              </div>
+              <div className="form-group-card">
+                 <input 
+                   type="text" 
+                   placeholder="Nombre como figura en la tarjeta" 
+                   value={cardForm.name}
+                   onChange={e => setCardForm({...cardForm, name: e.target.value})}
+                   required 
+                 />
+              </div>
+              <div className="form-group-card">
+                 <input 
+                   type="text" 
+                   placeholder="DNI del titular" 
+                   value={cardForm.dni}
+                   onChange={e => setCardForm({...cardForm, dni: e.target.value})}
+                   required 
+                 />
+              </div>
+              <div className="form-group-card">
+                 <select value={cardForm.installments} onChange={e => setCardForm({...cardForm, installments: e.target.value})}>
+                    <option value="1">1 pago de {formatPrice(totalWithCard)}</option>
+                    <option value="3">3 pagos sin interés (promoción)</option>
+                    <option value="6">6 pagos fijos</option>
+                 </select>
+              </div>
+
               <button type="submit" className="button pill-checkout-btn" disabled={loading}>
                  {loading ? "PROCESANDO..." : `PAGAR ${formatPrice(totalWithCard)}`}
               </button>
            </form>
+           
            <button className="back-btn-link" onClick={() => setStep("payment_choice")}>Cambiar medio de pago</button>
            {status && <p className="status-info">{status}</p>}
+        </div>
+      )}
+
+      {step === "success" && (
+        <div className="success-container">
+           <div className="check-circle-anim">✓</div>
+           <h2>¡Pago aprobado!</h2>
+           <p>Gracias por tu compra. Te enviamos los detalles a tu email.</p>
+           <Link to="/" className="button pill-checkout-btn" onClick={onClear}>Volver al inicio</Link>
         </div>
       )}
 

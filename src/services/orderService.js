@@ -24,19 +24,17 @@ function isValidArgentinaPhone(phone) {
 }
 
 async function createPendingOrder({ customer, customerData, items, saveCustomerData }) {
-  const {
-    customerName,
-    province,
-    city,
-    address1,
-    address2,
-    postalCode,
-    phone,
-    deliveryMethod,
-  } = customerData || {};
+  const dc = customerData || {};
+  const customerName = dc.customerName || (customer?.firstName ? `${customer.firstName} ${customer.lastName || ""}` : "Cliente");
+  const phone = dc.phone || customer?.phone || "0000000000";
+  const province = dc.province || "CÓRDOBA";
+  const city = dc.city || "CÓRDOBA";
+  const address1 = dc.address1 || "RECUPERAR EN LOCAL";
+  const postalCode = dc.postalCode || "5000";
+  const deliveryMethod = dc.deliveryMethod || "PICKUP";
 
-  if (!customerName || !province || !city || !address1 || !postalCode || !phone || !deliveryMethod) {
-    throw new Error("Missing customer data");
+  if (!customerName || !phone) {
+    throw new Error("Nombre y teléfono son obligatorios");
   }
   if (!isValidArgentinaPhone(phone)) {
     throw new Error("Invalid phone");

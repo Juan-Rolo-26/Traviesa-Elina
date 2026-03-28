@@ -3986,7 +3986,101 @@ input:checked + .slider:before {
   justify-content: center;
 }
 
-@media (max-width: 992px) {
-  .checkout-layout { grid-template-columns: 1fr; gap: 40px; }
-  .payment-options-grid { grid-template-columns: 1fr; }
+/* Real Card Form & Success Views */
+.real-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 500px;
+  margin: 30px auto;
+  text-align: left;
+}
+
+.form-group-card input,
+.form-group-card select {
+  width: 100%;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #f0efed;
+  background: #fdfdfd;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-row-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-row-card input {
+  width: 100%;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #f0efed;
+  background: #fdfdfd;
+}
+
+.form-group-card input:focus,
+.form-group-card select:focus {
+  border-color: #c4a484;
+  outline: none;
+}
+
+.status-info {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.status-info.error {
+  color: #d9534f;
+  background: #fff5f5;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.success-container {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.check-circle-anim {
+  width: 80px;
+  height: 80px;
+  background: #25D366;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  margin: 0 auto 30px;
+  animation: popSuccess 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popSuccess {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.security-notice {
+  font-size: 0.85rem;
+  color: #888;
+  text-align: center;
+  margin-bottom: -15px;
+}
+
+.payment-summary-box {
+  background: #f8f8f8;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.payment-summary-box strong {
+  font-size: 1.2rem;
+  color: #000;
 }

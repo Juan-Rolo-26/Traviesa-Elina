@@ -30,7 +30,7 @@ app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, version: '2.0.debug', time: new Date() });
 });
 
 app.get("/api/runtime-check", (req, res) => {

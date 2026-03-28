@@ -66,12 +66,15 @@ function smtpConfigFromEnv() {
   const pass = process.env.SMTP_PASS;
   const from = process.env.SMTP_FROM || user;
 
-  if (!pass) return null;
+  if (!pass) {
+    console.error("[auth] SMTP_PASS not found in environment.");
+    return null;
+  }
 
   return {
     host,
     port,
-    secure: port === 465,
+    secure: port === 465, // Si usas 465 es True, si usas 587 es False (STARTTLS)
     auth: { user, pass },
     from,
   };
@@ -154,37 +157,55 @@ router.post("/register", async (req, res) => {
     }
 
     const existingByEmail = await prisma.customer.findUnique({ where: { email } });
-    if (existingByEmail) {
-      if (existingByEmail.isVerified) {
-        return res.status(409).json({ error: "El email ya existe" });
-      }
-      // If not verified, we'll recreate or update it later (for simplicity, we delete and recreate if not verified)
-      await prisma.customer.delete({ where: { email } });
+    if (existingByEmail && existingByEmail.isVerified) {
+      return res.status(409).json({ error: "El email ya existe" });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const verificationCode = createSixDigitCode();
 
-    const customer = await prisma.customer.create({
-      data: {
-        email,
-        username: username || firstName || null,
-        firstName: firstName || null,
-        phone: phone || null,
-        passwordHash,
-        isVerified: false,
-        verificationCode,
-        role: "customer",
-      },
-    });
+    let customer;
+    if (existingByEmail) {
+      customer = await prisma.customer.update({
+        where: { id: existingByEmail.id },
+        data: {
+          username: username || firstName || existingByEmail.username,
+          firstName: firstName || existingByEmail.firstName,
+          phone: phone || existingByEmail.phone,
+          passwordHash,
+          verificationCode,
+        },
+      });
+    } else {
+      customer = await prisma.customer.create({
+        data: {
+          email,
+          username: username || firstName || null,
+          firstName: firstName || null,
+          phone: phone || null,
+          passwordHash,
+          isVerified: false,
+          verificationCode,
+          role: "customer",
+        },
+      });
+    }
 
     const smtp = smtpConfigFromEnv();
-    if (smtp) {
+    if (!smtp) {
+      console.error("[auth/register] SMTP not configured. Check .env variables.");
+      return res.status(500).json({ error: "El servicio de email no está configurado." });
+    }
+
+    try {
       const transporter = nodemailer.createTransport({
         host: smtp.host,
         port: smtp.port,
         secure: smtp.secure,
         auth: smtp.auth,
+        tls: {
+          rejectUnauthorized: false
+        }
       });
 
       await transporter.sendMail({
@@ -192,6 +213,25 @@ router.post("/register", async (req, res) => {
         to: email,
         subject: "Codigo de verificacion - Traviesa",
         text: `Tu codigo de verificacion es: ${verificationCode}`,
+      });
+
+      try {
+        const fs = require("fs");
+        const successMsg = `[${new Date().toISOString()}] Mail SUCCESS to: ${email}\n`;
+        fs.appendFileSync(path.join(__dirname, "../../mail-debug.log"), successMsg);
+      } catch (_) {}
+    } catch (mailError) {
+      console.error("[auth/register] sendMail error", mailError);
+      
+      try {
+        const fs = require("fs");
+        const logMsg = `[${new Date().toISOString()}] Register Mail Error to ${email}: ${mailError.message}\n${mailError.stack}\n---\n`;
+        fs.appendFileSync(path.join(__dirname, "../../mail-debug.log"), logMsg);
+      } catch (logErr) {}
+
+      return res.status(500).json({ 
+        error: "No se pudo enviar el email de verificación.", 
+        details: mailError.message 
       });
     }
 

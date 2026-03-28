@@ -23,7 +23,7 @@ function App() {
     }
   });
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [checkoutAsGuest, setCheckoutAsGuest] = useState(false);
+  const [guestData, setGuestData] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [lotPulse, setLotPulse] = useState(false);
@@ -365,7 +365,8 @@ function App() {
               customerToken={customerToken}
               customerProfile={customerProfile}
               onAuthOpen={() => setAuthModalOpen(true)}
-              isGuest={checkoutAsGuest}
+              isGuest={!!guestData}
+              guestData={guestData}
             />
           }
         />
@@ -428,8 +429,8 @@ function App() {
         customerProfile={customerProfile}
         onAuthSuccess={handleAuthSuccess}
         onLogout={handleLogout}
-        onGuestCheckout={() => {
-          setCheckoutAsGuest(true);
+        onGuestCheckout={(data) => {
+          setGuestData(data);
           setAuthModalOpen(false);
           navigate("/checkout");
         }}

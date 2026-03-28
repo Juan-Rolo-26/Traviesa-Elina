@@ -201,10 +201,17 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, onLogout, sh
           )}
 
           {tab === "guest" && (
-            <form className="auth-form-pure" onSubmit={(e) => { e.preventDefault(); onGuestCheckout(); }}>
-              <input type="text" placeholder="Nombre Completo" required />
-              <input type="text" placeholder="Teléfono" required />
-              <input type="email" placeholder="Correo Electrónico" required />
+            <form className="auth-form-pure" onSubmit={(e) => { 
+                e.preventDefault(); 
+                onGuestCheckout({
+                  customerName: e.target.elements.guestName.value,
+                  phone: e.target.elements.guestPhone.value,
+                  email: e.target.elements.guestEmail.value
+                }); 
+              }}>
+              <input name="guestName" type="text" placeholder="Nombre Completo" required />
+              <input name="guestPhone" type="text" placeholder="Teléfono" required />
+              <input name="guestEmail" type="email" placeholder="Correo Electrónico" required />
               <button type="submit" className="auth-main-btn">
                 CONTINUAR COMO INVITADO
               </button>

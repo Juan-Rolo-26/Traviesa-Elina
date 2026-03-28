@@ -23,7 +23,7 @@ function isValidArgentinaPhone(phone) {
   return digits.length >= 10 && digits.length <= 13;
 }
 
-async function createPendingOrder({ customer, customerData, items, saveCustomerData }) {
+async function createPendingOrder({ customer, customerData, items, saveCustomerData, surchargePercent }) {
   const dc = customerData || {};
   const customerName = dc.customerName || (customer?.firstName ? `${customer.firstName} ${customer.lastName || ""}` : "Cliente");
   const phone = dc.phone || customer?.phone || "0000000000";
@@ -73,13 +73,18 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
       }
     }
 
-    const totalAmount = products.reduce((sum, product) => {
+    let totalAmount = products.reduce((sum, product) => {
       const qty = quantityById.get(product.id) || 1;
       const sortedOffers = [...(product.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
       const match = sortedOffers.find((o) => qty >= o.quantity);
       const unitPrice = match ? match.price : (product.discountPrice ?? product.price);
       return sum + unitPrice * qty;
     }, 0);
+
+    // Apply optional surcharge (e.g. 3.55% for cards)
+    if (surchargePercent && Number(surchargePercent) > 0) {
+      totalAmount = Math.round(totalAmount * (1 + Number(surchargePercent) / 100));
+    }
 
     const order = await tx.order.create({
       data: {

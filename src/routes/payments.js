@@ -92,13 +92,14 @@ function serializeSavedMethod(method) {
 
 router.post("/init", optionalCustomer, async (req, res) => {
   try {
-    const { customerData, items, totalAmount, saveCustomerData } = req.body || {};
+    const { customerData, items, totalAmount, saveCustomerData, surchargePercent } = req.body || {};
 
     const order = await createPendingOrder({
       customer: req.customer || null,
       customerData,
       items,
       saveCustomerData: Boolean(saveCustomerData),
+      surchargePercent,
     });
 
     const computedTotal = formatCentsToNumber(order.totalAmount);

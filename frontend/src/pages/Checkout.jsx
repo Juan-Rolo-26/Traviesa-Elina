@@ -80,6 +80,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
           deliveryMethod: "PICKUP"
         },
         totalAmount: totalWithCard,
+        surchargePercent: CARD_SURCHARGE_PERCENT
       };
       const res = await initPayment(payload, customerToken);
       setOrderId(res.orderId);

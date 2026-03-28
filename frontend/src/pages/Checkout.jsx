@@ -1,93 +1,32 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
-import {
-  deleteSavedPaymentMethod,
-  fetchPaymentStatus,
-  initPayment,
-  processPayment,
-} from "../api";
-import { formatPrice } from "../utils/format";
-import { fetchArgCitiesByProvince, fetchArgProvinces } from "../services/argGeo";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { processPayment, initPayment } from "../api";
 
-const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
-const DEVICE_SESSION_WAIT_ATTEMPTS = 12;
-const DEVICE_SESSION_WAIT_MS = 200;
+const CARD_SURCHARGE_PERCENT = 3.55;
 
-function hasStoredAddress(profile) {
-  if (!profile) return false;
-  return Boolean(
-    profile.firstName &&
-      profile.lastName &&
-      profile.province &&
-      profile.city &&
-      profile.address1 &&
-      profile.postalCode &&
-      profile.phone
-  );
-}
-
-function buildAddressText(profile) {
-  if (!profile) return "";
-  return [profile.address1, profile.city, profile.province, profile.postalCode]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-function isValidArgentinaPhone(phone) {
-  const digits = String(phone || "").replace(/\D/g, "");
-  return digits.length >= 10 && digits.length <= 13;
+function formatPrice(num) {
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(num);
 }
 
 function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, isGuest }) {
-  const location = useLocation();
-  const [step, setStep] = useState("cart");
+  const [step, setStep] = useState("cart"); // cart, contact, payment_choice, card_form, transfer_done
+  const [paymentType, setPaymentType] = useState(null); // 'card' or 'transfer'
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
+  const [orderId, setOrderId] = useState(null);
+  const [editingShipping, setEditingShipping] = useState(false);
+
   const [form, setForm] = useState({
     customerName: "",
-    province: "",
-    city: "",
-    address1: "",
-    address2: "",
-    postalCode: "",
     phone: "",
-    deliveryMethod: "PICKUP",
+    // ... possibly other fields if needed for shipping in future
   });
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [editingShipping, setEditingShipping] = useState(true);
-  const [setAsNewLocation, setSetAsNewLocation] = useState(false);
-  const [savePaymentMethod, setSavePaymentMethod] = useState(false);
-  const [warnings, setWarnings] = useState({});
-  const [paymentSession, setPaymentSession] = useState(null);
-  const [savedMethods, setSavedMethods] = useState([]);
-  const [selectedMethodId, setSelectedMethodId] = useState(null);
-  const [paymentResult, setPaymentResult] = useState(null);
-  const [brickReady, setBrickReady] = useState(false);
-  const [deviceSessionId, setDeviceSessionId] = useState(null);
-  const [provinces, setProvinces] = useState([]);
-  const [cities, setCities] = useState([]);
 
-  const warningTimers = useRef({});
-  const brickControllerRef = useRef(null);
-
-  const waitForDeviceSessionId = async () => {
-    const readId = () =>
-      String(deviceSessionId || window.MP_DEVICE_SESSION_ID || "").trim();
-
-    const immediate = readId();
-    if (immediate) return immediate;
-
-    for (let attempt = 0; attempt < DEVICE_SESSION_WAIT_ATTEMPTS; attempt += 1) {
-      await new Promise((resolve) => {
-        setTimeout(resolve, DEVICE_SESSION_WAIT_MS);
-      });
-      const value = readId();
-      if (value) return value;
-    }
-
-    return undefined;
-  };
-
-  const total = useMemo(() => {
+  const totalBase = useMemo(() => {
     return cart.reduce((sum, item) => {
       const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
       const match = sortedOffers.find((o) => Number(item.quantity) >= Number(o.quantity));
@@ -96,634 +35,222 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
     }, 0);
   }, [cart]);
 
-  const hasSavedLocation = Boolean(customerToken && hasStoredAddress(customerProfile));
+  const cardSurcharge = (totalBase * CARD_SURCHARGE_PERCENT) / 100;
+  const totalWithCard = totalBase + cardSurcharge;
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("step") === "checkout") {
-      setStep("checkout");
-    }
-  }, [location.search]);
-
-  useEffect(() => {
-    if (!customerProfile) {
-      setEditingShipping(true);
-      return;
-    }
-
-    const fullName = [customerProfile.firstName, customerProfile.lastName]
-      .filter(Boolean)
-      .join(" ");
-
-    setForm((prev) => ({
-      ...prev,
-      customerName: fullName || prev.customerName,
-      province: customerProfile.province || prev.province,
-      city: customerProfile.city || prev.city,
-      address1: customerProfile.address1 || prev.address1,
-      address2: customerProfile.address2 || prev.address2,
-      postalCode: customerProfile.postalCode || prev.postalCode,
-      phone: customerProfile.phone || prev.phone,
-    }));
-
-    setEditingShipping(!hasStoredAddress(customerProfile));
-    setSavedMethods(customerProfile.savedPaymentMethods || []);
-    setSelectedMethodId(customerProfile.savedPaymentMethods?.[0]?.id || null);
+     if (customerProfile) {
+       setForm({
+         customerName: customerProfile.firstName + (customerProfile.lastName ? (" " + customerProfile.lastName) : ""),
+         phone: customerProfile.phone || "",
+       });
+     }
   }, [customerProfile]);
 
-  useEffect(() => {
-    if (!customerToken) {
-      setSavedMethods([]);
-      setSelectedMethodId(null);
-      setSavePaymentMethod(false);
-      setEditingShipping(true);
-      setSetAsNewLocation(false);
-    }
-  }, [customerToken]);
-
-  useEffect(() => {
-    let active = true;
-    fetchArgProvinces().then((items) => {
-      if (active) setProvinces(items);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    if (!form.province) {
-      setCities([]);
-      return () => {
-        active = false;
-      };
-    }
-    fetchArgCitiesByProvince(form.province).then((items) => {
-      if (active) setCities(items);
-    });
-    return () => {
-      active = false;
-    };
-  }, [form.province]);
-
-  useEffect(() => {
-    if (step !== "payment" || !paymentSession) return undefined;
-    if (!MP_PUBLIC_KEY) {
-      setStatus("Falta VITE_MERCADOPAGO_PUBLIC_KEY en frontend/.env");
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    const mountBrick = async () => {
-      try {
-        setBrickReady(false);
-        if (!window.MercadoPago) {
-          await new Promise((resolve, reject) => {
-            const existing = document.querySelector('script[data-mp-sdk="true"]');
-            if (existing) {
-              existing.addEventListener("load", resolve, { once: true });
-              existing.addEventListener("error", reject, { once: true });
-              return;
-            }
-            const script = document.createElement("script");
-            script.src = "https://sdk.mercadopago.com/js/v2";
-            script.dataset.mpSdk = "true";
-            script.onload = resolve;
-            script.onerror = reject;
-            document.body.appendChild(script);
-          });
-        }
-
-        if (cancelled) return;
-
-        const mp = new window.MercadoPago(MP_PUBLIC_KEY, { locale: "es-AR" });
-        const bricksBuilder = mp.bricks();
-
-        if (brickControllerRef.current?.unmount) {
-          await brickControllerRef.current.unmount();
-        }
-
-        brickControllerRef.current = await bricksBuilder.create(
-          "cardPayment",
-          "mp-card-payment-brick",
-          {
-            initialization: {
-              amount: paymentSession.amount,
-              payer: {
-                email: customerProfile?.email || undefined,
-              },
-            },
-            callbacks: {
-              onReady: () => {
-                if (!cancelled) setBrickReady(true);
-              },
-              onSubmit: async (cardFormData) => {
-                setLoading(true);
-                setStatus(null);
-                setPaymentResult(null);
-                try {
-                  const resolvedDeviceSessionId = await waitForDeviceSessionId();
-                  if (resolvedDeviceSessionId && resolvedDeviceSessionId !== deviceSessionId) {
-                    setDeviceSessionId(resolvedDeviceSessionId);
-                  }
-
-                  const result = await processPayment(
-                    {
-                      ...cardFormData,
-                      orderId: paymentSession.orderId,
-                      transaction_amount: paymentSession.amount,
-                      payer: {
-                        ...(cardFormData?.payer || {}),
-                        email:
-                          cardFormData?.payer?.email ||
-                          customerProfile?.email ||
-                          undefined,
-                      },
-                      deviceSessionId: resolvedDeviceSessionId,
-                      savePaymentMethod: Boolean(customerToken && savePaymentMethod),
-                      selectedSavedMethodId: selectedMethodId,
-                    },
-                    customerToken
-                  );
-
-                  setPaymentResult(result);
-
-                  if (result.paymentStatus === "approved") {
-                    onClear?.();
-                    setStatus("Pago aprobado. Pedido confirmado.");
-                  } else if (result.paymentStatus === "pending" || result.paymentStatus === "in_process") {
-                    setStatus("Pago pendiente. Te avisaremos cuando se confirme.");
-                  } else {
-                    setStatus("Pago rechazado. Puedes intentar con otra tarjeta.");
-                  }
-                } catch (error) {
-                  setStatus(error.message);
-                  throw error;
-                } finally {
-                  setLoading(false);
-                }
-              },
-              onError: (error) => {
-                setStatus(error?.message || "Error al cargar Mercado Pago Brick");
-              },
-            },
-          }
-        );
-      } catch (error) {
-        setStatus("No se pudo cargar Mercado Pago Brick");
-      }
-    };
-
-    mountBrick();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    step,
-    paymentSession,
-    customerProfile?.email,
-    customerToken,
-    savePaymentMethod,
-    selectedMethodId,
-    onClear,
-  ]);
-
-  useEffect(() => {
-    if (step !== "payment") return undefined;
-
-    let cancelled = false;
-    const existing = document.querySelector('script[data-mp-security="true"]');
-
-    const updateDeviceId = () => {
-      const id = window.MP_DEVICE_SESSION_ID;
-      if (!cancelled && id) {
-        setDeviceSessionId(String(id));
-      }
-    };
-
-    if (existing) {
-      updateDeviceId();
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://www.mercadopago.com/v2/security.js";
-    script.setAttribute("view", "checkout");
-    script.dataset.mpSecurity = "true";
-    script.onload = updateDeviceId;
-    script.onerror = () => {};
-    document.body.appendChild(script);
-
-    const timer = setTimeout(updateDeviceId, 1200);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [step]);
-
-  useEffect(() => {
-    if (step !== "payment" || !paymentSession?.orderId || !paymentResult?.paymentStatus) return;
-
-    const currentStatus = String(paymentResult.paymentStatus);
-    if (!["in_process", "pending", "authorized"].includes(currentStatus)) return;
-
-    let cancelled = false;
-    let timerId;
-    let attempts = 0;
-    const maxAttempts = 24; // ~2 minutes
-
-    const poll = async () => {
-      if (cancelled) return;
-      attempts += 1;
-      try {
-        const latest = await fetchPaymentStatus(paymentSession.orderId, customerToken);
-        if (cancelled || !latest) return;
-
-        setPaymentResult((prev) => ({ ...(prev || {}), ...latest }));
-
-        if (latest.paymentStatus === "approved") {
-          onClear?.();
-          setStatus("Pago aprobado. Pedido confirmado.");
-          return;
-        }
-
-        if (["rejected", "cancelled"].includes(String(latest.paymentStatus || ""))) {
-          setStatus("Pago rechazado. Puedes intentar con otra tarjeta.");
-          return;
-        }
-      } catch (_) {
-        // Continue polling silently for transient/network issues.
-      }
-
-      if (attempts < maxAttempts && !cancelled) {
-        timerId = setTimeout(poll, 5000);
-      }
-    };
-
-    timerId = setTimeout(poll, 5000);
-
-    return () => {
-      cancelled = true;
-      if (timerId) clearTimeout(timerId);
-    };
-  }, [step, paymentSession?.orderId, paymentResult?.paymentStatus, customerToken, onClear]);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => {
-      if (name === "province") {
-        return { ...prev, province: value, city: "" };
-      }
-      return { ...prev, [name]: value };
-    });
-  };
-
-  const showWarning = (productId) => {
-    setWarnings((prev) => ({ ...prev, [productId]: true }));
-    if (warningTimers.current[productId]) clearTimeout(warningTimers.current[productId]);
-    warningTimers.current[productId] = setTimeout(() => {
-      setWarnings((prev) => ({ ...prev, [productId]: false }));
-    }, 2000);
-  };
-
-  const getCheckoutCustomerData = () => {
-    return {
-      ...form,
-      deliveryMethod: "PICKUP",
-      province: form.province || customerProfile?.province || "CABA",
-      city: form.city || customerProfile?.city || "CABA",
-      address1: form.address1 || customerProfile?.address1 || "Retiro por local",
-      address2: form.address2 || customerProfile?.address2 || "",
-      postalCode: form.postalCode || customerProfile?.postalCode || "1000",
-    };
-  };
-
-  const handleInitPayment = async (event) => {
-    event.preventDefault();
-    if (cart.length === 0) {
-      setStatus("El lote esta vacio.");
+  const handleContinueFromCart = () => {
+    if (!customerProfile && !isGuest) {
+      onAuthOpen();
       return;
     }
-
-    const customerData = getCheckoutCustomerData();
-    if (!isValidArgentinaPhone(customerData.phone)) {
-      setStatus("Ingresa un telefono valido de Argentina (10 a 13 digitos).");
-      return;
+    // Si logueado saltamos contacto
+    if (customerProfile && customerProfile.phone) {
+      setStep("payment_choice");
+    } else {
+      setStep("contact");
     }
-    const saveCustomerData = false;
+  };
 
+  const handleFinishContact = (e) => {
+    e.preventDefault();
+    setStep("payment_choice");
+  };
+
+  const handleSelectPayment = (type) => {
+    setPaymentType(type);
+    if (type === "transfer") {
+      setStep("transfer_done");
+    } else {
+       setStep("card_form");
+    }
+  };
+
+  const handleFinalCardPayment = async (e) => {
+    e.preventDefault();
     setLoading(true);
-    setStatus(null);
-    setPaymentResult(null);
-
+    setStatus("Procesando pago con tarjeta...");
     try {
-      const session = await initPayment(
-        {
-          customerData,
-          items: cart.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
-          totalAmount: total,
-          saveCustomerData,
-        },
-        customerToken
-      );
-
-      setPaymentSession(session);
-      setSavedMethods(session.savedPaymentMethods || []);
-      setSelectedMethodId(session.savedPaymentMethods?.[0]?.id || null);
-      setStep("payment");
-      setStatus("Pedido creado. Completa el pago con Mercado Pago.");
-    } catch (error) {
-      setStatus(error.message);
+      // Reutiliza logica existente de initPayment pero con el recargo
+      const payload = {
+        items: cart.map(i => ({ ...i, price: i.price * 1.0355 })), // Simulación de recargo simple
+        customerName: form.customerName,
+        phone: form.phone,
+        total: totalWithCard,
+        method: "card"
+      };
+      const res = await initPayment(payload, customerToken);
+      // Aqui normalmente abriria MP o similar
+      window.location.href = res.init_point;
+    } catch (err) {
+      setStatus("Error: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteSavedMethod = async (id) => {
-    if (!customerToken) return;
-    try {
-      await deleteSavedPaymentMethod(customerToken, id);
-      const nextMethods = savedMethods.filter((method) => method.id !== id);
-      setSavedMethods(nextMethods);
-      if (selectedMethodId === id) {
-        setSelectedMethodId(nextMethods[0]?.id || null);
-      }
-      setStatus("Metodo de pago guardado eliminado.");
-    } catch (error) {
-      setStatus(error.message);
-    }
-  };
+  const currentTotal = paymentType === "card" ? totalWithCard : totalBase;
+
+  const whatsappLink = useMemo(() => {
+    const text = encodeURIComponent(
+      `¡Hola Traviesa! Mi nombre es ${form.customerName}. Acabo de realizar un pedido por transferencia por un total de ${formatPrice(totalBase)}. 
+Mi número de teléfono es ${form.phone}. 
+Adjunto el comprobante de pago.`
+    );
+    return `https://wa.me/5493513749655?text=${text}`;
+  }, [form, totalBase]);
 
   return (
-    <div className={`checkout-wrapper ${step}`}>
+    <div className="checkout-page container">
       {step === "cart" && (
-        <div className="cart-page-new">
-          <div className="cart-page-head">
-            <h1>Tu Carrito</h1>
-            <p>Revisa tus selecciones cuidadosamente antes de finalizar tu pedido boutique.</p>
-          </div>
-          <div className="cart-page-split">
-            <div className="cart-items-col">
-              {cart.length === 0 && <p className="helper">No hay productos en el carrito.</p>}
-              {cart.map((item) => (
-                <div className="cart-item-card" key={item.productId}>
-                  <img src={item.image} alt={item.name} />
-                  <div className="cart-item-info">
-                    <div className="cart-item-top">
-                      <div className="cart-item-title-col">
-                        <strong>{item.name}</strong>
-                        {(() => {
-                          const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
-                          const isWholesale = sortedOffers.some(o => Number(item.quantity) >= Number(o.quantity));
-                          if (isWholesale) {
-                            return (
-                              <div style={{ fontSize: '11px', color: '#ff0000', marginTop: '2px', fontWeight: '700' }}>
-                                PRECIO MAYORISTA APLICADO
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()}
-                      </div>
-                      <strong className="cart-item-price-gold">
-                        {(() => {
-                          const sortedOffers = [...(item.wholesaleOffers || [])].sort((a, b) => b.quantity - a.quantity);
-                          const match = sortedOffers.find(o => Number(item.quantity) >= Number(o.quantity));
-                          return formatPrice(match ? (Number(match.price) * Number(item.quantity)) : (item.price * item.quantity));
-                        })()}
-                      </strong>
-                    </div>
-                    <div className="cart-item-bottom">
-                      <div className="qty-control cart-qty-new">
-                        <button
-                          type="button"
-                          onClick={() => item.onQtyChange?.(item.productId, Math.max(1, item.quantity - 1))}
-                          disabled={item.quantity <= 1}
-                        >
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (item.stock && item.quantity + 1 > item.stock) {
-                              showWarning(item.productId);
-                              return;
-                            }
-                            item.onQtyChange?.(item.productId, item.quantity + 1);
-                          }}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <button
-                        className="cart-remove-text"
-                        type="button"
-                        onClick={() => item.onRemove?.(item.productId)}
-                        aria-label="Eliminar"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        ELIMINAR
-                      </button>
-                    </div>
-                    {warnings[item.productId] && (
-                      <span className="helper warning-text">No hay esa cantidad en stock</span>
-                    )}
-                  </div>
-                </div>
-              ))}
+        <div className="cart-view">
+          <h2>Mi carrito ({cart.length})</h2>
+          {cart.length === 0 ? (
+            <div className="cart-empty">
+              <p>Tu carrito está vacío</p>
+              <Link to="/" className="button secondary">Volver a la tienda</Link>
             </div>
-
-            <div className="cart-summary-col">
-              <div className="cart-summary-box">
-                <h3>Resumen</h3>
-                <div className="cart-summary-row">
-                  <span className="summary-label">Subtotal ({cart.length} items)</span>
-                  <strong>{formatPrice(total)}</strong>
-                </div>
-                <div className="cart-summary-row">
-                  <span className="summary-label">Envio Estandar</span>
-                  <strong>A calcular</strong>
-                </div>
-                <div className="cart-summary-total">
-                  <span>TOTAL</span>
-                  <strong className="cart-item-price-gold total-big">{formatPrice(total)}</strong>
-                </div>
-            <button
-              className="button checkout-continue-btn"
-              type="button"
-              disabled={cart.length === 0}
-              onClick={() => {
-                if (!customerProfile && !isGuest) {
-                  onAuthOpen();
-                  return;
-                }
-                
-            <button
-              className="button checkout-continue-btn"
-              type="button"
-              disabled={cart.length === 0}
-              onClick={() => {
-                if (!customerProfile && !isGuest) {
-                  onAuthOpen();
-                  return;
-                }
-                setStep("checkout");
-              }}
-            >
-              Continuar compra
-            </button>
-              }}
-            >
-              Continuar compra
-            </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === "checkout" && (
-        <div className="form checkout-contact-form">
-          {customerProfile && customerProfile.phone && !editingShipping ? (
-             <div className="summary-checkout-data">
-                <h2>Confirmar tu compra</h2>
-                <div className="summary-data-box">
-                   <p><strong>Nombre:</strong> {form.customerName}</p>
-                   <p><strong>Teléfono:</strong> {form.phone}</p>
-                   {customerProfile.address1 && (
-                     <p><strong>Entrega en:</strong> {buildAddressText(customerProfile)}</p>
-                   )}
-                </div>
-                <button 
-                  className="auth-link" 
-                  style={{ marginBottom: '20px', display: 'block', padding: 0 }} 
-                  onClick={() => setEditingShipping(true)}
-                >
-                  Modificar datos
-                </button>
-                <form className="checkout-form" onSubmit={handleInitPayment}>
-                  <button className="button checkout-finish-btn" type="submit" disabled={loading}>
-                    {loading ? "Preparando pago..." : "Finalizar compra"}
-                  </button>
-                </form>
-             </div>
           ) : (
-            <>
-              <h2>Contacto</h2>
-              <form className="checkout-form" onSubmit={handleInitPayment}>
-                <>
-                  <input
-                    name="customerName"
-                    placeholder="Nombre y apellido"
-                    value={form.customerName}
-                    onChange={handleChange}
-                    required
-                  />
-                  <input
-                    name="phone"
-                    placeholder="Telefono"
-                    value={form.phone}
-                    onChange={handleChange}
-                    inputMode="numeric"
-                    required
-                  />
-                </>
-                {/* Reutilizando inputs de direccion que podrían estar ocultos/visibles segun setup previo */}
-                <button className="button checkout-finish-btn" type="submit" disabled={loading}>
-                  {loading ? "Preparando pago..." : "Finalizar compra"}
-                </button>
-              </form>
-            </>
+            <div className="cart-grid">
+              <div className="cart-items-col">
+                {cart.map((item) => (
+                  <div key={item.productId} className="cart-item-row">
+                    <img src={item.image} alt={item.name} className="cart-item-thumb" />
+                    <div className="cart-item-info">
+                      <h3>{item.name}</h3>
+                      <div className="cart-item-qty-row">
+                        <button onClick={() => item.onQtyChange(item.productId, item.quantity - 1)} disabled={item.quantity <= 1}>-</button>
+                        <span>{item.quantity}</span>
+                        <button onClick={() => item.onQtyChange(item.productId, item.quantity + 1)}>+</button>
+                      </div>
+                    </div>
+                    <div className="cart-item-price-col">
+                       <strong>{formatPrice(item.price * item.quantity)}</strong>
+                       <button className="cart-item-remove" onClick={() => item.onRemove(item.productId)}>Eliminar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="cart-summary-col">
+                <div className="cart-totals">
+                   <div className="total-row">
+                      <span>Subtotal</span>
+                      <span>{formatPrice(totalBase)}</span>
+                   </div>
+                   <div className="total-row main">
+                      <span>TOTAL</span>
+                      <strong>{formatPrice(totalBase)}</strong>
+                   </div>
+                   <button className="button main-checkout-btn" onClick={handleContinueFromCart}>
+                     CONTINUAR COMPRA
+                   </button>
+                </div>
+              </div>
+            </div>
           )}
-          {status && <p className="helper">{status}</p>}
         </div>
       )}
 
-      {step === "payment" && (
-        <>
-          <div className="form">
-            <h2>Pago seguro</h2>
-            <p className="helper">
-              Mercado Pago procesa la tarjeta de forma tokenizada. La tienda no almacena numero, CVV ni vencimiento.
-            </p>
+      {step === "contact" && (
+        <div className="form-view">
+           <h2>Datos de contacto</h2>
+           <form className="checkout-form-styled" onSubmit={handleFinishContact}>
+              <input 
+                type="text" 
+                placeholder="Nombre completo" 
+                value={form.customerName}
+                onChange={e => setForm({...form, customerName: e.target.value})}
+                required 
+              />
+              <input 
+                type="text" 
+                placeholder="Teléfono" 
+                value={form.phone}
+                onChange={e => setForm({...form, phone: e.target.value})}
+                required 
+              />
+              <button type="submit" className="button main-checkout-btn">CONTINUAR</button>
+           </form>
+           <button className="back-link" onClick={() => setStep("cart")}>Volver al carrito</button>
+        </div>
+      )}
 
-            {savedMethods.length > 0 && (
-              <div className="saved-methods">
-                <h3>Metodo guardado</h3>
-                {savedMethods.map((method) => (
-                  <label key={method.id} className="saved-method-row">
-                    <input
-                      type="radio"
-                      name="saved-method"
-                      checked={selectedMethodId === method.id}
-                      onChange={() => setSelectedMethodId(method.id)}
-                    />
-                    <span>
-                      {String(method.brand || "Tarjeta").toUpperCase()} terminada en {method.last4}
-                    </span>
-                    <button
-                      type="button"
-                      className="button secondary"
-                      onClick={() => handleDeleteSavedMethod(method.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </label>
-                ))}
-                <p className="helper">Puedes cambiar o eliminar metodos guardados.</p>
+      {step === "payment_choice" && (
+        <div className="payment-choice-view">
+           <h2>Elegí un medio de pago</h2>
+           <p className="helper">Hola {form.customerName.split(" ")[0]}, ¿Cómo preferís pagar?</p>
+           
+           <div className="payment-grid">
+              <div className="payment-card-option" onClick={() => handleSelectPayment("transfer")}>
+                 <div className="payment-icon">🏦</div>
+                 <h3>Transferencia</h3>
+                 <p>Pagás el precio normal</p>
+                 <div className="payment-price">{formatPrice(totalBase)}</div>
               </div>
-            )}
 
-            {customerToken && (
-              <label className="helper checkbox-inline">
-                <input
-                  type="checkbox"
-                  checked={savePaymentMethod}
-                  onChange={(event) => setSavePaymentMethod(event.target.checked)}
-                />
-                Guardar este metodo de pago para futuras compras
-              </label>
-            )}
+              <div className="payment-card-option highlight" onClick={() => handleSelectPayment("card")}>
+                 <div className="payment-icon">💳</div>
+                 <h3>Tarjeta de Débito / Crédito</h3>
+                 <p className="fee-warning">Tiene un recargo del {CARD_SURCHARGE_PERCENT}%</p>
+                 <div className="payment-price">{formatPrice(totalWithCard)}</div>
+              </div>
+           </div>
+           
+           <button className="back-link" onClick={() => customerProfile ? setStep("cart") : setStep("contact")}>Volver atrás</button>
+        </div>
+      )}
 
-            <div id="mp-card-payment-brick" className="mp-brick-container" />
-            {!brickReady && <p className="helper">Cargando formulario de tarjeta...</p>}
+      {step === "card_form" && (
+        <div className="form-view">
+           <h2>Pago con Tarjeta</h2>
+           <p className="helper">Vas a pagar {formatPrice(totalWithCard)}</p>
+           <form className="checkout-form-styled" onSubmit={handleFinalCardPayment}>
+              {/* Aquí se integraria el SDK de MP, por ahora simulamos con el boton principal */}
+              <button type="submit" className="button main-checkout-btn" disabled={loading}>
+                 {loading ? "CARGANDO..." : `PAGAR ${formatPrice(totalWithCard)}`}
+              </button>
+           </form>
+           <button className="back-link" onClick={() => setStep("payment_choice")}>Cambiar medio de pago</button>
+           {status && <p className="error-msg">{status}</p>}
+        </div>
+      )}
 
-            {paymentResult && (
-              <>
-                <p className="helper">
-                  Estado del pago: <strong>{paymentResult.paymentStatus}</strong>
-                </p>
-                {paymentResult.statusDetail && (
-                  <p className="helper">Detalle: {paymentResult.statusDetail}</p>
-                )}
-              </>
-            )}
+      {step === "transfer_done" && (
+        <div className="transfer-done-view">
+           <div className="transfer-header">
+              <div className="check-icon">⌛</div>
+              <h2>En espera de pago</h2>
+           </div>
+           <p>¡Hola! ¿Cómo estás? Podés hacer transferencia bancaria a la siguiente cuenta dentro de las primeras 12hs:</p>
+           
+           <div className="bank-details-box">
+              <h3>Mercado Pago</h3>
+              <p><strong>Alias:</strong> Traviesa49</p>
+              <p><strong>Titular:</strong> Elina Zulma Velazque</p>
+           </div>
 
-            <button className="button secondary" type="button" onClick={() => setStep("checkout")}>
-              Volver atras
-            </button>
-            {status && <p className="helper">{status}</p>}
-          </div>
+           <div className="transfer-notice">
+              SI NO RECIBIMOS EL PAGO DENTRO DE LAS PRIMERAS 12 HS DE HABER EFECTUADO LA COMPRA, LA MISMA SE CANCELARÁ PARA QUE LOS PRODUCTOS VUELVAN A STOCK.
+           </div>
 
-          <div className="form checkout-summary">
-            <h2>Resumen</h2>
-            <div className="table-row">
-              <span>Total a pagar</span>
-              <strong>{formatPrice(total)}</strong>
-            </div>
-            <p className="helper">Pedido: {paymentSession?.orderId || "-"}</p>
-          </div>
-        </>
+           <p className="whatsapp-help">
+              Por favor envianos tu comprobante de pago por Whatsapp al <strong>+54 9 3513 74-9655</strong> e indicanos tu nombre.
+           </p>
+
+           <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="button whatsapp-btn">
+              ENVIAR COMPROBANTE POR WHATSAPP
+           </a>
+
+           <Link to="/" className="back-to-home" onClick={onClear}>Cerrar y volver a la tienda</Link>
+        </div>
       )}
     </div>
   );

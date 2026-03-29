@@ -49,6 +49,10 @@ export async function verifyRegistration(payload) {
   return postJsonWithHandling("/api/auth/verify-registration", payload, "Codigo invalido");
 }
 
+export async function resendRegistration(payload) {
+  return postJsonWithHandling("/api/auth/resend-verification", payload, "No se pudo reenviar");
+}
+
 export async function loginCustomer(payload) {
   return postJsonWithHandling("/api/auth/login", payload, "Credenciales invalidas");
 }

@@ -286,6 +286,41 @@ router.post("/verify-registration", async (req, res) => {
   }
 });
 
+router.post("/resend-verification", async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    if (!isValidEmail(email)) return res.status(400).json({ error: "Email invalido" });
+
+    const user = await prisma.customer.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+    if (user.isVerified) return res.status(400).json({ error: "El usuario ya esta verificado" });
+
+    const verificationCode = createSixDigitCode();
+    await prisma.customer.update({
+      where: { id: user.id },
+      data: { verificationCode },
+    });
+
+    const smtp = smtpConfigFromEnv();
+    if (smtp) {
+      const transporter = nodemailer.createTransport({
+        host: smtp.host, port: smtp.port, secure: smtp.secure, auth: smtp.auth,
+        tls: { rejectUnauthorized: false }
+      });
+      await transporter.sendMail({
+        from: smtp.from,
+        to: email,
+        subject: "Nuevo codigo de verificacion - Traviesa",
+        text: `Tu nuevo codigo de verificacion es: ${verificationCode}`,
+      });
+    }
+    return res.json({ message: "Codigo reenviado" });
+  } catch (error) {
+    return res.status(500).json({ error: "No se pudo reenviar el codigo" });
+  }
+});
+
+
 router.post("/login", async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email);

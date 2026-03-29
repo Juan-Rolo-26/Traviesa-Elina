@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { loginCustomer, registerCustomer, verifyRegistration } from "../api";
+import { loginCustomer, registerCustomer, verifyRegistration, resendRegistration } from "../api";
 
 function AuthModal({ open, onClose, onAuthSuccess, customerProfile, onLogout, showGuestOption, onGuestCheckout }) {
   const [tab, setTab] = useState("login");
@@ -55,7 +55,20 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, onLogout, sh
       onAuthSuccess(data);
       onClose();
     } catch (err) {
-      setError(err.message || "Codigo invalido");
+      setError(err.message || "Codigo invalido. Intenta reenviar.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await resendRegistration({ email: registerForm.email });
+      setError("Te hemos enviado un nuevo código.");
+    } catch (err) {
+      setError(err.message || "No se pudo reenviar");
     } finally {
       setLoading(false);
     }
@@ -192,9 +205,14 @@ function AuthModal({ open, onClose, onAuthSuccess, customerProfile, onLogout, sh
                     onChange={e => setVerificationCode(e.target.value)}
                     required 
                   />
-                  <button type="submit" className="auth-main-btn" disabled={loading}>
-                    {loading ? "VERIFICANDO..." : "VALIDAR CÓDIGO"}
-                  </button>
+                  <div className="button-row">
+                    <button type="submit" className="auth-main-btn" disabled={loading}>
+                      {loading ? "VERIFICANDO..." : "VALIDAR CÓDIGO"}
+                    </button>
+                    <button type="button" className="auth-main-btn secondary" disabled={loading} onClick={handleResend} style={{background: 'transparent', color: '#000', border: '1px solid #ddd'}}>
+                      {loading ? "..." : "REENVIAR CÓDIGO"}
+                    </button>
+                  </div>
                 </form>
               )}
             </>

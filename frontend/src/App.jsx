@@ -191,7 +191,7 @@ function App() {
   const handleAuthSuccess = (data) => {
     setCustomerToken(data.token);
     setCustomerProfile(data.user);
-    setCheckoutAsGuest(false);
+    setGuestData(null);
     localStorage.setItem("customerToken", data.token);
     localStorage.setItem("customerProfile", JSON.stringify(data.user));
   };
@@ -199,7 +199,7 @@ function App() {
   const handleLogout = () => {
     setCustomerToken(null);
     setCustomerProfile(null);
-    setCheckoutAsGuest(false);
+    setGuestData(null);
     localStorage.removeItem("customerToken");
     localStorage.removeItem("customerProfile");
   };

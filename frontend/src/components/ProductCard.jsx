@@ -37,7 +37,7 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
   };
 
   const handleAdd = (event) => {
-    if (stock > 1 && !showQty) {
+    if (!showQty) {
       setShowQty(true);
       return;
     }
@@ -85,7 +85,7 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
             −
           </button>
           <span>{qty}</span>
-          <button type="button" onClick={handlePlus}>
+          <button type="button" onClick={handlePlus} disabled={qty >= stock}>
             +
           </button>
         </div>

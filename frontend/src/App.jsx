@@ -128,12 +128,13 @@ function App() {
   };
 
   const addToCart = (product, quantity, event) => {
-    const safeQty = Math.max(1, Number(quantity) || 1);
+    const maxQty = product.stock ?? 1;
+    const safeQty = Math.min(Math.max(1, Number(quantity) || 1), maxQty);
     setCart((prev) => {
       const existing = prev.find((item) => item.productId === product.id);
       if (existing) {
         return prev.map((item) =>
-          item.productId === product.id ? { ...item, quantity: safeQty } : item
+          item.productId === product.id ? { ...item, quantity: Math.min(item.quantity + safeQty, maxQty) } : item
         );
       }
       return [
@@ -144,7 +145,7 @@ function App() {
           price: product.discountPrice ? product.discountPrice : product.price,
           quantity: safeQty,
           image: product.image,
-          stock: product.stock,
+          stock: maxQty,
           wholesaleOffers: product.wholesaleOffers || [],
         },
       ];
@@ -159,7 +160,7 @@ function App() {
   const updateCartQuantity = (productId, quantity) => {
     setCart((prev) =>
       prev.map((item) =>
-        item.productId === productId ? { ...item, quantity } : item
+        item.productId === productId ? { ...item, quantity: Math.min(Math.max(1, quantity), item.stock ?? 1) } : item
       )
     );
   };

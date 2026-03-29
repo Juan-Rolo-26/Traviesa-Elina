@@ -153,13 +153,13 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
                 −
               </button>
               <span>{qty}</span>
-              <button type="button" onClick={handlePlus}>
+              <button type="button" onClick={handlePlus} disabled={qty >= stock}>
                 +
               </button>
             </div>
 
             <button className="button product-add-btn" type="button" onClick={handleAdd}>
-              Comprar
+              Agregar al carrito
             </button>
           </div>
 

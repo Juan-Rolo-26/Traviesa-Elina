@@ -190,7 +190,7 @@ Adjunto el comprobante de pago.`
                       <div className="qty-control">
                          <button onClick={() => onQtyChange(item.productId, item.quantity - 1)} disabled={item.quantity <= 1}>-</button>
                         <span>{item.quantity}</span>
-                         <button onClick={() => onQtyChange(item.productId, item.quantity + 1)}>+</button>
+                         <button onClick={() => onQtyChange(item.productId, item.quantity + 1)} disabled={item.quantity >= (item.stock ?? 1)}>+</button>
                       </div>
                     </div>
                     <div className="checkout-item-price">

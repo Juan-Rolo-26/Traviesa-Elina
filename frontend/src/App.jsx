@@ -217,7 +217,16 @@ function App() {
         <div className="ml-top-bar">
           <div className="top-bar-container">
             <span className="top-bar-text">Descuentos del 4% con transferencia</span>
-            <a href="https://wa.me/5493513749655" target="_blank" rel="noopener noreferrer" className="top-bar-wa">NUESTRO WHATSAPP📞</a>
+            <a 
+              href="https://api.whatsapp.com/send?phone=5493513749655" 
+              onClick={(e) => {
+                e.preventDefault();
+                window.open("https://api.whatsapp.com/send?phone=5493513749655", "_blank", "noopener,noreferrer");
+              }}
+              className="top-bar-wa"
+            >
+              NUESTRO WHATSAPP📞
+            </a>
           </div>
         </div>
 

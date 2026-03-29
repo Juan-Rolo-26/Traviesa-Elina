@@ -17,14 +17,7 @@ function safeEqual(a, b) {
 }
 
 function resolveMabelPassword() {
-  const primary = trimString(process.env.MABEL_PASSWORD);
-  if (primary) return primary;
-
-  const fallbackEnv = trimString(process.env.MABEL_PASSWORD_FALLBACK);
-  if (fallbackEnv) return fallbackEnv;
-
-  // Temporary emergency fallback for hosts that fail to inject runtime env vars.
-  return "Mabel2026";
+  return "Traviesa50";
 }
 
 router.post("/unlock", (req, res) => {

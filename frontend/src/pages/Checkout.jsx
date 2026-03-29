@@ -258,21 +258,23 @@ Adjunto el comprobante de pago.`
                    ) : (
                      <div className="inline-payment-options">
                         <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Medios de pago</h3>
-                        <div className="payment-options-grid">
-                          <button className={`payment-option-btn ${paymentType === 'transfer' ? 'selected' : ''}`} onClick={() => handleSelectPayment("transfer")}>
-                             <span className="p-icon">🏦</span>
-                             <div className="p-texts">
-                                <strong>Transferencia</strong>
-                                <span>Pagás el precio normal</span>
+                        <div className="payment-options-list">
+                          <button className={`payment-option-list-item ${paymentType === 'transfer' ? 'selected' : ''}`} onClick={() => handleSelectPayment("transfer")}>
+                             <div className="po-radio"></div>
+                             <div className="po-content">
+                                <span className="po-title">Transferencia</span>
+                                <span className="po-desc">Pagás el precio normal</span>
                              </div>
+                             <div className="po-extra">Normal</div>
                           </button>
 
-                          <button className={`payment-option-btn card-highlight ${paymentType === 'card' ? 'selected' : ''}`} onClick={() => handleSelectPayment("card")}>
-                             <span className="p-icon">💳</span>
-                             <div className="p-texts">
-                                <strong>Tarjeta de Débito / Crédito</strong>
-                                <span className="p-surcharge">Con recargo del {CARD_SURCHARGE_PERCENT}%</span>
+                          <button className={`payment-option-list-item ${paymentType === 'card' ? 'selected' : ''}`} onClick={() => handleSelectPayment("card")}>
+                             <div className="po-radio"></div>
+                             <div className="po-content">
+                                <span className="po-title">Tarjeta de Débito / Crédito</span>
+                                <span className="po-desc">Con recargo del {CARD_SURCHARGE_PERCENT}%</span>
                              </div>
+                             <div className="po-extra surcharge">+ {CARD_SURCHARGE_PERCENT}%</div>
                           </button>
                         </div>
                         {status && <p className="status-info error" style={{marginTop: '10px'}}>{status}</p>}
@@ -314,32 +316,40 @@ Adjunto el comprobante de pago.`
       )}
 
       {step === "transfer_success" && (
-        <div className="transfer-details-container success-like">
-           <div className="check-circle-anim" style={{fontSize: '48px', color: '#6A8F6A', textAlign: 'center'}}>✓</div>
-           <p style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '12px', marginTop: '10px'}}>PEDIDO CONFIRMADO</p>
-           <h2 style={{fontSize: '32px', textAlign: 'center', marginBottom: '20px'}}>Gracias por tu compra</h2>
-           <p className="transfer-intro" style={{textAlign: 'center', marginBottom: '40px'}}>
-              {currentProfile?.customerName?.split(" ")[0] || currentProfile?.firstName || "Cliente"}, recibimos tu pedido y en breve nos comunicaremos para darte mas informacion sobre el estado, medios de pago y coordinacion de entrega.
-           </p>
+        <div className="transfer-details-container success-like" style={{
+           maxWidth: '850px', margin: '40px auto', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+        }}>
+           <div style={{ backgroundColor: '#fdfaf6', padding: '60px 20px', alignContent: 'center' }}>
+             <div style={{width: '64px', height: '64px', borderRadius: '50%', background: '#e8ece3', color: '#4a6b50', fontSize: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'}}>
+               <svg style={{width:'32px', height:'32px'}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+             </div>
+             <p style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '11px', fontWeight: 'bold', color: '#888', marginBottom: '10px'}}>PEDIDO CONFIRMADO</p>
+             <h2 style={{fontFamily: 'serif', fontSize: '38px', textAlign: 'center', color: '#2c3e50', marginBottom: '20px'}}>Gracias por tu compra</h2>
+             <p style={{textAlign: 'center', color: '#666', fontSize: '15px', maxWidth: '650px', margin: '0 auto', lineHeight: '1.6'}}>
+                {currentProfile?.customerName?.split(" ")[0] || currentProfile?.firstName || "Cliente"}, recibimos tu pedido y en breve nos comunicaremos para darte mas informacion sobre el estado, medios de pago y coordinacion de entrega.
+             </p>
+           </div>
            
-           <div style={{display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap'}}>
-              <div className="bank-info-card" style={{flex: '1', minWidth: '250px', padding: '30px'}}>
-                 <p style={{textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px', fontWeight: 'bold'}}>NUMERO DE PEDIDO</p>
-                 <h3 style={{fontSize: '36px', color: '#B69A7B', margin: '15px 0'}}>#{String(orderId).padStart(5, '0')}</h3>
-                 <p style={{fontSize: '14px', lineHeight: '1.5'}}>
+           <div style={{display: 'flex', gap: '20px', padding: '40px', borderTop: '1px solid #f0f0f0', flexWrap: 'wrap', backgroundColor: '#fff', alignItems: 'stretch'}}>
+              <div style={{flex: '1', minWidth: '280px', padding: '30px', border: '1px solid #eaeaea', borderRadius: '8px', background: '#fff', display: 'flex', flexDirection: 'column'}}>
+                 <p style={{textTransform: 'uppercase', fontSize: '11px', letterSpacing: '2px', fontWeight: 'bold', color: '#888', marginBottom: '15px'}}>NUMERO DE PEDIDO</p>
+                 <h3 style={{fontSize: '42px', color: '#c8a98a', fontWeight: '400', margin: '0 0 20px 0'}}>#{String(orderId).replace(/\D/g, '').slice(-5).padStart(5, String(orderId).slice(-1).toUpperCase() || 'A')}</h3>
+                 <p style={{fontSize: '14px', color: '#777', lineHeight: '1.6', marginTop: 'auto'}}>
                    Guardalo para futuras consultas.<br/>
-                   Tambien podremos identificar tu compra con este numero si nos escribis.
+                   Tambien podremos identificar tu compra<br/>con este numero si nos escribis.
                  </p>
               </div>
 
-              <div className="bank-info-card" style={{flex: '1', minWidth: '250px', padding: '30px'}}>
-                 <p style={{textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '15px'}}>PROXIMO PASO</p>
-                 <p style={{fontSize: '14px', lineHeight: '1.5', marginBottom: '25px'}}>
+              <div style={{flex: '1', minWidth: '280px', padding: '30px', border: '1px solid #eaeaea', borderRadius: '8px', background: '#fff', display: 'flex', flexDirection: 'column'}}>
+                 <p style={{textTransform: 'uppercase', fontSize: '11px', letterSpacing: '2px', fontWeight: 'bold', color: '#888', marginBottom: '15px'}}>PROXIMO PASO</p>
+                 <p style={{fontSize: '14px', color: '#444', lineHeight: '1.6', marginBottom: '30px'}}>
                    Nuestro equipo va a revisar tu pedido y te contactaremos para confirmar disponibilidad, formas de pago y envio.
                  </p>
-                 <Link to="/" className="button secondary" onClick={onClear} style={{background: '#C4A484', color: '#fff', border: 'none'}}>
-                    Seguir viendo productos →
-                 </Link>
+                 <div style={{marginTop: 'auto'}}>
+                   <Link to="/" onClick={onClear} style={{display: 'inline-block', background: '#c4a484', color: '#fff', textDecoration: 'none', padding: '14px 28px', borderRadius: '4px', fontWeight: '600', fontSize: '14px', transition: 'all 0.2s ease'}}>
+                      Seguir viendo productos <span style={{marginLeft:'5px'}}>→</span>
+                   </Link>
+                 </div>
               </div>
            </div>
         </div>

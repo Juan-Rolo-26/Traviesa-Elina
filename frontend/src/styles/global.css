@@ -2740,6 +2740,10 @@ html {
   text-transform: uppercase;
   white-space: nowrap;
   font-weight: 700;
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
+  cursor: pointer;
 }
 .top-bar-ig:hover {
   color: #D98F9E !important;

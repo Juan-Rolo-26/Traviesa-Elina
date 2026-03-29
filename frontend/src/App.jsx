@@ -216,7 +216,7 @@ function App() {
         {/* Capa 1: Top Bar */}
         <div className="ml-top-bar">
           <div className="top-bar-container">
-            <span className="top-bar-text">DESCUENTO 7% con Transferencia</span>
+            <span className="top-bar-text">Descuentos del 4% con transferencia</span>
             <a href="https://www.instagram.com/traviesa_ev/?hl=es" target="_blank" rel="noopener noreferrer" className="top-bar-ig">INSTAGRAM</a>
           </div>
         </div>

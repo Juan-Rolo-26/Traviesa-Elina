@@ -365,6 +365,8 @@ function App() {
               customerToken={customerToken}
               customerProfile={customerProfile}
               onAuthOpen={() => setAuthModalOpen(true)}
+              onRemove={removeFromCart}
+              onQtyChange={updateCartQuantity}
               isGuest={!!guestData}
               guestData={guestData}
             />

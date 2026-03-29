@@ -13,7 +13,7 @@ function formatPrice(num) {
   }).format(num);
 }
 
-function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, isGuest, guestData }) {
+function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, isGuest, guestData, onRemove, onQtyChange }) {
   const [step, setStep] = useState("cart"); 
   const [paymentType, setPaymentType] = useState(null); 
   const [loading, setLoading] = useState(false);
@@ -188,14 +188,14 @@ Adjunto el comprobante de pago.`
                     <div className="checkout-item-details">
                       <h3>{item.name}</h3>
                       <div className="qty-control">
-                        <button onClick={() => item.onQtyChange(item.productId, item.quantity - 1)} disabled={item.quantity <= 1}>-</button>
+                         <button onClick={() => onQtyChange(item.productId, item.quantity - 1)} disabled={item.quantity <= 1}>-</button>
                         <span>{item.quantity}</span>
-                        <button onClick={() => item.onQtyChange(item.productId, item.quantity + 1)}>+</button>
+                         <button onClick={() => onQtyChange(item.productId, item.quantity + 1)}>+</button>
                       </div>
                     </div>
                     <div className="checkout-item-price">
                        <strong>{formatPrice(item.price * item.quantity)}</strong>
-                       <button className="remove-item-link" onClick={() => item.onRemove(item.productId)}>Eliminar</button>
+                        <button className="remove-item-link" onClick={() => onRemove(item.productId)}>Eliminar</button>
                     </div>
                   </div>
                 ))}

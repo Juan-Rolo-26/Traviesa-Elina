@@ -35,12 +35,6 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
 
   const currentProfile = customerProfile || guestData;
 
-  useEffect(() => {
-    if (currentProfile && step === "cart") {
-      setStep("payment_choice");
-    }
-  }, [currentProfile, step]);
-
   const handleContinueFromCart = () => {
     if (!customerProfile && !isGuest) {
       onAuthOpen();

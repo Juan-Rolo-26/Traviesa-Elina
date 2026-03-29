@@ -4084,3 +4084,27 @@ input:checked + .slider:before {
   font-size: 1.2rem;
   color: #000;
 }
+
+.back-btn-link {
+  display: block;
+  width: fit-content;
+  margin: 20px auto 0;
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: 1px solid #ddd;
+}
+
+.back-btn-link:hover {
+  background: var(--bg-accent);
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}

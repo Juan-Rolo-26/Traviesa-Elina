@@ -3902,10 +3902,14 @@ input:checked + .slider:before {
   text-align: center;
 }
 
-.payment-option-btn:hover {
+.payment-option-btn:hover, .payment-option-btn.selected {
   border-color: #c4a484;
   transform: translateY(-5px);
   box-shadow: 0 10px 30px rgba(196, 164, 132, 0.1);
+}
+.payment-option-btn.selected {
+  background-color: #fff9f2;
+  border-width: 3px;
 }
 
 .p-icon {

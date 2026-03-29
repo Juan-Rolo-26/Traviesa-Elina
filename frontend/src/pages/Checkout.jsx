@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { initPayment, processPayment } from "../api";
+import { initPayment, processPayment, submitTransferOrder } from "../api";
 
 const CARD_SURCHARGE_PERCENT = 3.55;
 const MP_PUBLIC_KEY = "APP_USR-fe20fb80-4632-4ce1-b6c7-2be026e4d938";
@@ -15,6 +15,7 @@ function formatPrice(num) {
 
 function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, isGuest, guestData, onRemove, onQtyChange }) {
   const [step, setStep] = useState("cart"); 
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
   const [paymentType, setPaymentType] = useState(null); 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
@@ -40,15 +41,54 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
       onAuthOpen();
       return;
     }
-    setStep("payment_choice");
+    setShowPaymentOptions(true);
   };
 
   const handleSelectPayment = (type) => {
     setPaymentType(type);
-    if (type === "transfer") {
-      setStep("transfer_done");
+  };
+
+  const handleFinalizePurchase = () => {
+    if (!paymentType) {
+      setStatus("Falta seleccionar un medio de pago.");
+      return;
+    }
+    if (paymentType === "transfer") {
+      initTransferFlow();
     } else {
-       initCardPaymentFlow();
+      initCardPaymentFlow();
+    }
+  };
+
+  const initTransferFlow = async () => {
+    setLoading(true);
+    setStatus("");
+    try {
+      const payload = {
+        items: cart.map(i => ({ 
+          productId: i.productId, 
+          quantity: i.quantity,
+          productName: i.name,
+          productPrice: i.price
+        })),
+        customerData: {
+          customerName: currentProfile?.customerName || (currentProfile?.firstName ? `${currentProfile.firstName} ${currentProfile.lastName || ""}` : "Cliente"),
+          phone: currentProfile?.phone || "0000000000",
+          email: currentProfile?.email || "test@test.com",
+          province: "CÓRDOBA",
+          city: "CÓRDOBA",
+          address1: "RETIRO EN LOCAL",
+          postalCode: "5000",
+          deliveryMethod: "PICKUP"
+        },
+      };
+      const res = await submitTransferOrder(payload, customerToken);
+      setOrderId(res.id);
+      setStep("transfer_success");
+    } catch (err) {
+      setStatus("Error: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -208,46 +248,43 @@ Adjunto el comprobante de pago.`
                    </div>
                    <div className="summary-row total-big">
                       <span>TOTAL</span>
-                      <strong>{formatPrice(totalBase)}</strong>
+                      <strong>{formatPrice(paymentType === 'card' ? totalWithCard : totalBase)}</strong>
                    </div>
-                   <button className="button pill-checkout-btn" onClick={handleContinueFromCart}>
-                     CONTINUAR COMPRA
-                   </button>
+
+                   {!showPaymentOptions ? (
+                     <button className="button pill-checkout-btn" onClick={handleContinueFromCart}>
+                       CONTINUAR COMPRA
+                     </button>
+                   ) : (
+                     <div className="inline-payment-options">
+                        <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Medios de pago</h3>
+                        <div className="payment-options-grid">
+                          <button className={`payment-option-btn ${paymentType === 'transfer' ? 'selected' : ''}`} onClick={() => handleSelectPayment("transfer")}>
+                             <span className="p-icon">🏦</span>
+                             <div className="p-texts">
+                                <strong>Transferencia</strong>
+                                <span>Pagás el precio normal</span>
+                             </div>
+                          </button>
+
+                          <button className={`payment-option-btn card-highlight ${paymentType === 'card' ? 'selected' : ''}`} onClick={() => handleSelectPayment("card")}>
+                             <span className="p-icon">💳</span>
+                             <div className="p-texts">
+                                <strong>Tarjeta de Débito / Crédito</strong>
+                                <span className="p-surcharge">Con recargo del {CARD_SURCHARGE_PERCENT}%</span>
+                             </div>
+                          </button>
+                        </div>
+                        {status && <p className="status-info error" style={{marginTop: '10px'}}>{status}</p>}
+                        <button className="button pill-checkout-btn" style={{ marginTop: '15px' }} onClick={handleFinalizePurchase} disabled={loading}>
+                          {loading ? "PROCESANDO..." : "FINALIZAR COMPRA"}
+                        </button>
+                     </div>
+                   )}
                 </div>
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {step === "payment_choice" && (
-        <div className="payment-choice-container">
-           <h2>Elegí un medio de pago</h2>
-           <p className="payment-welcome">Hola {currentProfile?.customerName?.split(" ")[0] || currentProfile?.firstName || ""}, ¿Cómo preferís pagar?</p>
-           
-           <div className="payment-options-grid">
-              <button className="payment-option-btn" onClick={() => handleSelectPayment("transfer")}>
-                 <span className="p-icon">🏦</span>
-                 <div className="p-texts">
-                    <strong>Transferencia</strong>
-                    <span>Pagás el precio normal</span>
-                 </div>
-                 <div className="p-amount">{formatPrice(totalBase)}</div>
-              </button>
-
-              <button className="payment-option-btn card-highlight" onClick={() => { handleSelectPayment("card"); }}>
-                 <span className="p-icon">💳</span>
-                 <div className="p-texts">
-                    <strong>Tarjeta de Débito / Crédito</strong>
-                    <span className="p-surcharge">Con recargo del {CARD_SURCHARGE_PERCENT}%</span>
-                 </div>
-                 <div className="p-amount">{formatPrice(totalWithCard)}</div>
-              </button>
-           </div>
-           
-           <button className="back-btn-link" onClick={() => setStep("cart")}>Volver al carrito</button>
-           {status && <p className="status-info error">{status}</p>}
-           {loading && paymentType === 'card' && <p className="status-info">Iniciando pasarela segura...</p>}
         </div>
       )}
 
@@ -276,33 +313,35 @@ Adjunto el comprobante de pago.`
         </div>
       )}
 
-      {step === "transfer_done" && (
-        <div className="transfer-details-container">
-           <div className="transfer-header-status">
-              <span className="wait-icon">⌛</span>
-              <h2>En espera de pago</h2>
-           </div>
-           <p className="transfer-intro">¡Hola! ¿Cómo estás? Podés hacer transferencia bancaria a la siguiente cuenta dentro de las primeras 12hs:</p>
-           
-           <div className="bank-info-card">
-              <h3>Mercado Pago</h3>
-              <div className="info-line"><span>Alias:</span> <strong>Traviesa49</strong></div>
-              <div className="info-line"><span>Titular:</span> <strong>Elina Zulma Velazque</strong></div>
-           </div>
-
-           <div className="warning-red-caps">
-              SI NO RECIBIMOS EL PAGO DENTRO DE LAS PRIMERAS 12 HS DE HABER EFECTUADO LA COMPRA, LA MISMA SE CANCELARÁ PARA QUE LOS PRODUCTOS VUELVAN A STOCK Y PUEDAN SER ADQUIRIDOS POR OTRA PERSONA.
-           </div>
-
-           <p className="wa-instructions">
-              Por favor envianos tu comprobante de pago por Whatsapp al <strong>+54 9 3513 74-9655</strong> e indicanos tu nombre.
+      {step === "transfer_success" && (
+        <div className="transfer-details-container success-like">
+           <div className="check-circle-anim" style={{fontSize: '48px', color: '#6A8F6A', textAlign: 'center'}}>✓</div>
+           <p style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '12px', marginTop: '10px'}}>PEDIDO CONFIRMADO</p>
+           <h2 style={{fontSize: '32px', textAlign: 'center', marginBottom: '20px'}}>Gracias por tu compra</h2>
+           <p className="transfer-intro" style={{textAlign: 'center', marginBottom: '40px'}}>
+              {currentProfile?.customerName?.split(" ")[0] || currentProfile?.firstName || "Cliente"}, recibimos tu pedido y en breve nos comunicaremos para darte mas informacion sobre el estado, medios de pago y coordinacion de entrega.
            </p>
+           
+           <div style={{display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap'}}>
+              <div className="bank-info-card" style={{flex: '1', minWidth: '250px', padding: '30px'}}>
+                 <p style={{textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px', fontWeight: 'bold'}}>NUMERO DE PEDIDO</p>
+                 <h3 style={{fontSize: '36px', color: '#B69A7B', margin: '15px 0'}}>#{String(orderId).padStart(5, '0')}</h3>
+                 <p style={{fontSize: '14px', lineHeight: '1.5'}}>
+                   Guardalo para futuras consultas.<br/>
+                   Tambien podremos identificar tu compra con este numero si nos escribis.
+                 </p>
+              </div>
 
-           <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="button whatsapp-success-btn">
-              ENVIAR COMPROBANTE POR WHATSAPP
-           </a>
-
-           <Link to="/" className="home-exit-link" onClick={onClear}>Volver al inicio de la tienda</Link>
+              <div className="bank-info-card" style={{flex: '1', minWidth: '250px', padding: '30px'}}>
+                 <p style={{textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '15px'}}>PROXIMO PASO</p>
+                 <p style={{fontSize: '14px', lineHeight: '1.5', marginBottom: '25px'}}>
+                   Nuestro equipo va a revisar tu pedido y te contactaremos para confirmar disponibilidad, formas de pago y envio.
+                 </p>
+                 <Link to="/" className="button secondary" onClick={onClear} style={{background: '#C4A484', color: '#fff', border: 'none'}}>
+                    Seguir viendo productos →
+                 </Link>
+              </div>
+           </div>
         </div>
       )}
     </div>

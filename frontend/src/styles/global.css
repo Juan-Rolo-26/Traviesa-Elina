@@ -2734,7 +2734,7 @@ html {
   color: #ffffff;
 }
 
-.top-bar-ig {
+.top-bar-wa {
   color: #ffffff !important;
   text-decoration: underline;
   text-transform: uppercase;
@@ -2745,7 +2745,7 @@ html {
   pointer-events: auto;
   cursor: pointer;
 }
-.top-bar-ig:hover {
+.top-bar-wa:hover {
   color: #D98F9E !important;
 }
 

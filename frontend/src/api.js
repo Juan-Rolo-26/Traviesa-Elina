@@ -249,6 +249,20 @@ export async function initPayment(payload, token) {
   return res.json();
 }
 
+export async function submitTransferOrder(payload, token) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_URL}/api/orders/transfer`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    return readError(res, "No se pudo procesar tu orden por transferencia");
+  }
+  return res.json();
+}
+
 export async function processPayment(payload, token) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;

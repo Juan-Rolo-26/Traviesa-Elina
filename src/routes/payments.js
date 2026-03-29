@@ -99,7 +99,7 @@ router.post("/init", optionalCustomer, async (req, res) => {
       customerData,
       items,
       saveCustomerData: Boolean(saveCustomerData),
-      surchargePercent,
+      surchargePercent: surchargePercent ? Number(surchargePercent) : 0,
     });
 
     const computedTotal = formatCentsToNumber(order.totalAmount);

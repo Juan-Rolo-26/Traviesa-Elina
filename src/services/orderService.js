@@ -82,8 +82,9 @@ async function createPendingOrder({ customer, customerData, items, saveCustomerD
     }, 0);
 
     // Apply optional surcharge (e.g. 3.55% for cards)
-    if (surchargePercent && Number(surchargePercent) > 0) {
-      totalAmount = Math.round(totalAmount * (1 + Number(surchargePercent) / 100));
+    const sPercent = Number(surchargePercent || 0);
+    if (sPercent > 0) {
+      totalAmount = Math.round(totalAmount * (1 + sPercent / 100));
     }
 
     const order = await tx.order.create({

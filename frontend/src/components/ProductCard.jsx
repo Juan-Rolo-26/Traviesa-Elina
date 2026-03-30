@@ -57,7 +57,7 @@ function ProductCard({ product, onAdd, inCart, onDelete, showDelete }) {
         </button>
       )}
       <Link to={`/producto/${product.id}`} className="card-img-link">
-        <img src={product.image} alt={product.name} />
+        <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
         {product.isWholesale && <span className="wholesale-badge">Mayorista</span>}
       </Link>
       <div>

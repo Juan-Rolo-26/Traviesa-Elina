@@ -85,6 +85,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
       const res = await submitTransferOrder(payload, customerToken);
       setOrderId(res.id);
       setStep("transfer_success");
+      onClear();
     } catch (err) {
       setStatus("Error: " + err.message);
     } finally {
@@ -172,6 +173,7 @@ function Checkout({ cart, onClear, customerToken, customerProfile, onAuthOpen, i
                 const res = await processPayment(payload, customerToken);
                 if (res.paymentStatus === "approved") {
                   setStep("success");
+                  onClear();
                 } else {
                   setStatus("El pago fue rechazado. Reintente con otra tarjeta.");
                   setLoading(false);
@@ -309,9 +311,9 @@ Adjunto el comprobante de pago.`
       {step === "success" && (
         <div className="success-container">
            <div className="check-circle-anim">✓</div>
-           <h2>¡Tu pago de {formatPrice(totalWithCard)} fue aprobado!</h2>
+           <h2>¡Tu pago fue aprobado exitosamente!</h2>
            <p>Gracias por tu compra. Te llegará una confirmación a tu email.</p>
-           <Link to="/" className="button pill-checkout-btn" onClick={onClear}>Volver al inicio</Link>
+           <Link to="/" className="button pill-checkout-btn">Volver al inicio</Link>
         </div>
       )}
 

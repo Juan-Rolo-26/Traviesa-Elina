@@ -383,7 +383,7 @@ function App() {
           element={<CategoryPage onAdd={addToCart} cart={cart} isAdmin={isMabelMode} />}
         />
         <Route path="/producto/:id" element={<ProductDetail onAdd={addToCart} isMabelMode={isMabelMode} />} />
-        <Route path="/mis-compras" element={<PurchasesPage />} />
+        <Route path="/mis-compras" element={<PurchasesPage customerProfile={customerProfile} />} />
         <Route
           path="/checkout"
           element={

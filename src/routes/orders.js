@@ -117,8 +117,11 @@ router.get("/action/:id", async (req, res) => {
     }
 
     if (action === "cancel") {
-      await prisma.order.delete({ where: { id } });
-      return res.send("<h1 style='color: #d90429; text-align: center; margin-top: 50px;'>✅ Pedido cancelado y eliminado con éxito.</h1>");
+      await prisma.order.update({ 
+        where: { id },
+        data: { status: "rejected" }
+      });
+      return res.send("<h1 style='color: #d90429; text-align: center; margin-top: 50px;'>✅ Pedido cancelado y marcado como rechazado con éxito.</h1>");
     }
 
     if (action === "confirm") {
@@ -158,6 +161,22 @@ router.get("/action/:id", async (req, res) => {
   } catch (error) {
     console.error("Error en Order Action:", error);
     res.status(500).send("<h1 style='color: red; text-align: center; margin-top: 50px;'>Ocurrió un error al procesar el pedido.</h1>");
+  }
+});
+
+router.get("/my-purchases", optionalCustomer, async (req, res) => {
+  try {
+    if (!req.customer) {
+      return res.status(401).json({ error: "Debe iniciar sesión para ver sus compras" });
+    }
+    const orders = await prisma.order.findMany({
+      where: { customerId: req.customer.id },
+      orderBy: { createdAt: "desc" },
+      include: { items: true }
+    });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

@@ -286,3 +286,13 @@ export async function fetchPaymentStatus(orderId, token) {
   }
   return res.json();
 }
+
+export async function fetchCustomerOrders(token) {
+  const res = await fetch(`${API_URL}/api/orders/my-purchases`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    return readError(res, "No se pudieron cargar las compras");
+  }
+  return res.json();
+}

@@ -4309,3 +4309,125 @@ input:checked + .slider:before {
 }
 .ts-btn:hover { background: #b39373; color: #fff; }
 .ts-btn span { margin-left: 5px; }
+
+/* --- MIS COMPRAS --- */
+.my-purchases-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+  min-height: 60vh;
+}
+.my-purchases-title {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #333;
+}
+.my-purchases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.my-purchase-card {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.mp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fdfdfd;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eaeaea;
+}
+.mp-date {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 4px 0;
+  text-transform: capitalize;
+}
+.mp-order-id {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+.my-purchases-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.my-purchases-badge.confirmed { background: #e8ece3; color: #4a6b50; }
+.my-purchases-badge.pending { background: #fff4e5; color: #b7791f; }
+.my-purchases-badge.rejected { background: #ffebee; color: #d32f2f; }
+
+.mp-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.mp-item-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.mp-item-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+.mp-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mp-item-details {
+  flex-grow: 1;
+}
+.mp-item-name {
+  font-size: 14px;
+  color: #444;
+  margin: 0 0 5px 0;
+  font-weight: 500;
+}
+.mp-item-qty {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.mp-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #fafafa;
+  border-top: 1px solid #eaeaea;
+}
+.mp-total-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  margin: 0;
+}
+.mp-total-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .mp-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

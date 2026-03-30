@@ -7,6 +7,7 @@ import promoDelMesFallback from "../assets/hero/promo-del-mes.mp4";
 import blanqueriaYBazarVideo from "../assets/hero/blanqueria_y_bazar.mp4";
 import disenoSinTituloVideo from "../assets/hero/diseno_sin_titulo.mp4";
 import renovaTuCamaVideo from "../assets/hero/renova_tu_cama.mp4";
+import renovaTuCamaMobileVideo from "../assets/hero/renova_tu_cama_mobile.mp4";
 import "../styles/HeroCarousel.css";
 
 const AUTOPLAY_MS = 6000;
@@ -16,7 +17,7 @@ function HeroCarousel() {
   const slides = [
     { type: "video", src: blanqueriaYBazarVideo, alt: "Blanqueria y bazar", durationMs: 5000 },
     { type: "video", src: disenoSinTituloVideo, alt: "Diseño sin título", durationMs: 5000 },
-    { type: "video", src: renovaTuCamaVideo, alt: "Renova tu cama", durationMs: 5000 },
+    { type: "video", src: renovaTuCamaVideo, mobileSrc: renovaTuCamaMobileVideo, alt: "Renova tu cama", durationMs: 5000 },
     { type: "video", src: promoDelMes2, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
     { type: "video", src: armaTuPaquete2, alt: "Arma tu paquete 2", durationMs: 8000 },
     { type: "video", src: promo20Off7, fallbackSrc: promo20OffFallback, alt: "Promo 20 por ciento off 7", durationMs: 8000 },
@@ -25,7 +26,7 @@ function HeroCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [pauseUntil, setPauseUntil] = useState(0);
   const resumeTimeoutRef = useRef(null);
-  const videoRefs = useRef([]);
+  const slideRefs = useRef([]);
 
   const isPaused = pauseUntil > Date.now();
 
@@ -46,14 +47,17 @@ function HeroCarousel() {
   );
 
   useEffect(() => {
-    videoRefs.current.forEach((video, index) => {
-      if (!video) return;
+    slideRefs.current.forEach((slideDiv, index) => {
+      if (!slideDiv) return;
+      const videos = slideDiv.querySelectorAll('video');
       if (index === activeIndex) {
-        video.currentTime = 0;
-        const playPromise = video.play();
-        if (playPromise?.catch) playPromise.catch(() => {});
+        videos.forEach(v => {
+          v.currentTime = 0;
+          const playPromise = v.play();
+          if (playPromise?.catch) playPromise.catch(() => {});
+        });
       } else {
-        video.pause();
+        videos.forEach(v => v.pause());
       }
     });
   }, [activeIndex]);
@@ -88,29 +92,42 @@ function HeroCarousel() {
             key={`${slide.type}-${slide.src}`}
             className={`hero-carousel-slide ${activeIndex === index ? "active" : ""}`}
             aria-hidden={activeIndex !== index}
+            ref={(el) => {
+              slideRefs.current[index] = el;
+            }}
           >
             {slide.type === "video" ? (
-              <video
-                className="hero-carousel-media"
-                src={slide.src}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                onError={(event) => {
-                  if (!slide.fallbackSrc) return;
-                  const video = event.currentTarget;
-                  if (video.src?.includes(slide.fallbackSrc)) return;
-                  video.src = slide.fallbackSrc;
-                  video.load();
-                  const playPromise = video.play();
-                  if (playPromise?.catch) playPromise.catch(() => {});
-                }}
-                ref={(el) => {
-                  videoRefs.current[index] = el;
-                }}
-              />
+              <>
+                <video
+                  className={`hero-carousel-media ${slide.mobileSrc ? 'm-hide' : ''}`}
+                  src={slide.src}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  onError={(event) => {
+                    if (!slide.fallbackSrc) return;
+                    const video = event.currentTarget;
+                    if (video.src?.includes(slide.fallbackSrc)) return;
+                    video.src = slide.fallbackSrc;
+                    video.load();
+                    const playPromise = video.play();
+                    if (playPromise?.catch) playPromise.catch(() => {});
+                  }}
+                />
+                {slide.mobileSrc && (
+                  <video
+                    className="hero-carousel-media d-hide"
+                    src={slide.mobileSrc}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                )}
+              </>
             ) : (
               <img className="hero-carousel-media" src={slide.src} alt={slide.alt} />
             )}

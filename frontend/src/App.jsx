@@ -227,17 +227,16 @@ function App() {
 
         {/* Capa 2: Main Bar */}
         <div className="ml-main-bar">
-          <div className="ml-mobile-hamburger mobile-only">
-            <button
-              type="button"
-              aria-label="Abrir menú"
-              onClick={() => setDrawerOpen(true)}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M3 6h18M3 12h18M3 18h18" />
-              </svg>
-            </button>
-          </div>
+          <button
+            className="ml-hamburger"
+            type="button"
+            aria-label="Abrir menú"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+              <path d="M3 6h18M3 12h18M3 18h18" />
+            </svg>
+          </button>
 
           <div className="ml-main-left">
             <div className="ml-search-wrap">
@@ -283,20 +282,20 @@ function App() {
           </div>
 
           <nav className="ml-nav-row">
-            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link desktop-only ${isActive ? "active" : ""}`} to="/">
+            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/">
               Tienda
             </NavLink>
-            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link desktop-only ${isActive ? "active" : ""}`} to="/mis-compras">
+            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/mis-compras">
               Mis compras
             </NavLink>
 
-            <div className="ml-auth-trigger desktop-only" onClick={() => setAuthModalOpen(true)}>
-              <div className="ml-auth-circle">
+            <div className="ml-auth-trigger" onClick={() => setAuthModalOpen(true)}>
+              <div className="ml-auth-circle m-hide">
                 <svg viewBox="0 0 24 24">
                   <path d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V18h14v-1.5c0-2.33-4.67-3.5-7-3.5z" />
                 </svg>
               </div>
-              <div className="ml-auth-text">
+              <div className="ml-auth-text m-hide">
                 {!customerProfile ? (
                   <>
                     <strong>Entrá /</strong>
@@ -312,50 +311,47 @@ function App() {
                   </>
                 )}
               </div>
+              <div className="ml-auth-mobile-icon d-hide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{width: '26px', height: '26px'}}>
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
             </div>
 
-            <div className="ml-auth-icon mobile-only" onClick={() => setAuthModalOpen(true)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-
-            <div className="desktop-only text-cart">
+            <div>
               <NavLink
                 ref={lotIconRef}
                 className={({ isActive }) => `text-cart-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""}`}
                 to="/checkout"
                 aria-label="Mi carrito"
               >
-                <div className="text-cart-title">Carrito ({lotCount})</div>
-                <div className="text-cart-total">{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</div>
+                <div className="m-hide" style={{display: 'flex', flexDirection: 'column'}}>
+                  <div className="text-cart-title">Carrito ({lotCount})</div>
+                  <div className="text-cart-total">{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</div>
+                </div>
+                
+                <div className="d-hide" style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{width: '26px', height: '26px'}}>
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                  <span style={{
+                    position: 'absolute', top: '0', right: '-4px', transform: 'translate(30%, -30%)',
+                    background: '#000', color: '#fff', fontSize: '11px', fontWeight: 'bold',
+                    borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {lotCount}
+                  </span>
+                </div>
               </NavLink>
             </div>
-
-            <NavLink className="mobile-only mobile-cart-icon" to="/checkout" aria-label="Mi carrito">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-              <span className="mobile-cart-badge">{lotCount}</span>
-            </NavLink>
-            <button
-              className="ml-hamburger desktop-only"
-              type="button"
-              aria-label="Abrir menú"
-              onClick={() => setDrawerOpen(true)}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-            </button>
           </nav>
         </div>
 
         {/* Capa 3: Categorías Bar */}
-        <div className="ml-categories-bar desktop-only">
+        <div className="ml-categories-bar m-hide">
           <nav className="categories-nav">
             <Link to="/categoria/Blanqueria" className="category-link">Blanqueria</Link>
             <Link to="/categoria/Bazar" className="category-link">Bazar</Link>

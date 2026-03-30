@@ -227,6 +227,18 @@ function App() {
 
         {/* Capa 2: Main Bar */}
         <div className="ml-main-bar">
+          <div className="ml-mobile-hamburger mobile-only">
+            <button
+              type="button"
+              aria-label="Abrir menú"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M3 6h18M3 12h18M3 18h18" />
+              </svg>
+            </button>
+          </div>
+
           <div className="ml-main-left">
             <div className="ml-search-wrap">
               <input
@@ -271,14 +283,14 @@ function App() {
           </div>
 
           <nav className="ml-nav-row">
-            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/">
+            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link desktop-only ${isActive ? "active" : ""}`} to="/">
               Tienda
             </NavLink>
-            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link ${isActive ? "active" : ""}`} to="/mis-compras">
+            <NavLink className={({ isActive }) => `nav-link ml-nav-page-link desktop-only ${isActive ? "active" : ""}`} to="/mis-compras">
               Mis compras
             </NavLink>
 
-            <div className="ml-auth-trigger" onClick={() => setAuthModalOpen(true)}>
+            <div className="ml-auth-trigger desktop-only" onClick={() => setAuthModalOpen(true)}>
               <div className="ml-auth-circle">
                 <svg viewBox="0 0 24 24">
                   <path d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V18h14v-1.5c0-2.33-4.67-3.5-7-3.5z" />
@@ -302,7 +314,14 @@ function App() {
               </div>
             </div>
 
-            <div>
+            <div className="ml-auth-icon mobile-only" onClick={() => setAuthModalOpen(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+
+            <div className="desktop-only text-cart">
               <NavLink
                 ref={lotIconRef}
                 className={({ isActive }) => `text-cart-link lot-icon ${isActive ? "active" : ""} ${lotPulse ? "pulse" : ""}`}
@@ -313,8 +332,17 @@ function App() {
                 <div className="text-cart-total">{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</div>
               </NavLink>
             </div>
+
+            <NavLink className="mobile-only mobile-cart-icon" to="/checkout" aria-label="Mi carrito">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              <span className="mobile-cart-badge">{lotCount}</span>
+            </NavLink>
             <button
-              className="ml-hamburger"
+              className="ml-hamburger desktop-only"
               type="button"
               aria-label="Abrir menú"
               onClick={() => setDrawerOpen(true)}
@@ -413,20 +441,14 @@ function App() {
           </svg>
         </button>
         <nav className="ml-drawer-nav">
-          <NavLink
-            className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`}
-            to="/"
-            onClick={() => setDrawerOpen(false)}
-          >
-            Tienda
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`}
-            to="/mis-compras"
-            onClick={() => setDrawerOpen(false)}
-          >
-            Mis compras
-          </NavLink>
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/" onClick={() => setDrawerOpen(false)}>Tienda</NavLink>
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Blanqueria" onClick={() => setDrawerOpen(false)}>Blanqueria</NavLink>
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Bazar" onClick={() => setDrawerOpen(false)}>Bazar</NavLink>
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Deco" onClick={() => setDrawerOpen(false)}>Deco</NavLink>
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Alfombras" onClick={() => setDrawerOpen(false)}>Alfombras</NavLink>
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Cocina" onClick={() => setDrawerOpen(false)}>Cocina</NavLink>
+          <div style={{height: '1px', background: '#e0e0e0', margin: '15px 0'}} />
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/mis-compras" onClick={() => setDrawerOpen(false)}>Mis compras</NavLink>
         </nav>
       </aside>
       <AuthModal

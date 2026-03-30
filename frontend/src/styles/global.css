@@ -2928,30 +2928,50 @@ html {
 }
 @media (max-width: 920px) {
   .ml-main-bar {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 16px;
-    padding: 16px 20px;
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    grid-template-areas: 
+       "hamburger logo actions"
+       "search search search" !important;
+    gap: 15px !important;
+    padding: 15px !important;
+    align-items: center !important;
   }
+  .ml-mobile-hamburger {
+    grid-area: hamburger;
+    display: flex;
+    align-items: center;
+  }
+  .ml-mobile-hamburger button {
+    background: transparent; border: none; padding: 5px; cursor: pointer; color: #333;
+  }
+  .ml-mobile-hamburger svg { width: 30px; height: 30px; stroke: #333; stroke-width: 1.5; }
+  
   .ml-main-left {
+    grid-area: search !important;
+    margin-top: 5px !important;
+    order: unset !important;
     justify-content: center;
-    order: 2;
   }
   .ml-search-wrap {
     max-width: 100% !important;
   }
   .ml-main-center {
-    justify-content: center;
-    order: 1;
+    grid-area: logo !important;
+    display: flex !important;
+    justify-content: center !important;
+    order: unset !important;
   }
   .ml-logo-img {
-    height: 120px !important;
+    height: 100px !important; /* Slightly smaller logo for mobile harmony */
   }
   .ml-nav-row {
-    justify-content: center !important;
-    flex-wrap: wrap !important;
-    gap: 16px !important;
-    order: 3;
+    grid-area: actions !important;
+    display: flex !important;
+    gap: 10px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    order: unset !important;
   }
   .top-bar-container {
     flex-direction: column;
@@ -2972,6 +2992,45 @@ html {
     margin: 10px auto;
     justify-content: center;
   }
+
+  .mobile-only {
+    display: flex !important;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Mobile bag icon */
+  .mobile-cart-icon {
+    position: relative;
+    color: #333;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  .mobile-cart-icon svg { width: 26px; height: 26px; stroke: #333; stroke-width: 1.8; }
+  .mobile-cart-badge {
+    position: absolute;
+    top: 5px; right: 0px;
+    transform: translate(30%, -30%);
+    background: #000; color: #fff;
+    font-size: 11px; font-weight: bold;
+    border-radius: 50%; width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  
+  /* Mobile user icon */
+  .ml-auth-icon {
+    color: #333;
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ml-auth-icon svg { width: 26px; height: 26px; stroke: #333; stroke-width: 1.8; }
 }
 
 /* -----------------------------------------------

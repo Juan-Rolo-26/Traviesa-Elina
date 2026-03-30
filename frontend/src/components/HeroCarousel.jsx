@@ -8,6 +8,10 @@ import blanqueriaYBazarVideo from "../assets/hero/blanqueria_y_bazar.mp4";
 import disenoSinTituloVideo from "../assets/hero/diseno_sin_titulo.mp4";
 import renovaTuCamaVideo from "../assets/hero/renova_tu_cama.mp4";
 import renovaTuCamaMobileVideo from "../assets/hero/renova_tu_cama_mobile.mp4";
+import blanqueriaYBazarMobile from "../assets/hero/blanqueria_y_bazar_mobile.mp4";
+import promo20Off7Mobile from "../assets/hero/20_off_7_mobile.mp4";
+import armaTuPaquete2Mobile from "../assets/hero/arma_tu_paquete_2_mobile.mp4";
+import promoDelMes2Mobile from "../assets/hero/promo_del_mes_2_mobile.mp4";
 import "../styles/HeroCarousel.css";
 
 const AUTOPLAY_MS = 6000;
@@ -15,12 +19,12 @@ const INTERACTION_PAUSE_MS = 8000;
 
 function HeroCarousel() {
   const slides = [
-    { type: "video", src: blanqueriaYBazarVideo, alt: "Blanqueria y bazar", durationMs: 5000 },
+    { type: "video", src: blanqueriaYBazarVideo, mobileSrc: blanqueriaYBazarMobile, alt: "Blanqueria y bazar", durationMs: 5000 },
     { type: "video", src: disenoSinTituloVideo, alt: "Diseño sin título", durationMs: 5000 },
     { type: "video", src: renovaTuCamaVideo, mobileSrc: renovaTuCamaMobileVideo, alt: "Renova tu cama", durationMs: 5000 },
-    { type: "video", src: promoDelMes2, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
-    { type: "video", src: armaTuPaquete2, alt: "Arma tu paquete 2", durationMs: 8000 },
-    { type: "video", src: promo20Off7, fallbackSrc: promo20OffFallback, alt: "Promo 20 por ciento off 7", durationMs: 8000 },
+    { type: "video", src: promoDelMes2, mobileSrc: promoDelMes2Mobile, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
+    { type: "video", src: armaTuPaquete2, mobileSrc: armaTuPaquete2Mobile, alt: "Arma tu paquete 2", durationMs: 8000 },
+    { type: "video", src: promo20Off7, mobileSrc: promo20Off7Mobile, fallbackSrc: promo20OffFallback, alt: "Promo 20 por ciento off 7", durationMs: 8000 },
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);

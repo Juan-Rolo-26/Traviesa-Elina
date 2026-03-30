@@ -355,7 +355,7 @@ function App() {
         </div>
 
         {/* Capa 3: Categorías Bar */}
-        <div className="ml-categories-bar">
+        <div className="ml-categories-bar desktop-only">
           <nav className="categories-nav">
             <Link to="/categoria/Blanqueria" className="category-link">Blanqueria</Link>
             <Link to="/categoria/Bazar" className="category-link">Bazar</Link>

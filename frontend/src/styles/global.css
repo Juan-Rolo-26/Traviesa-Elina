@@ -2402,7 +2402,7 @@ html {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.36);
-  z-index: 300;
+  z-index: 9998;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.28s ease;
@@ -2417,12 +2417,12 @@ html {
 .ml-drawer {
   position: fixed;
   top: 0;
-  right: 0;
+  left: 0;
   height: 100%;
-  width: min(280px, 78vw);
+  width: min(300px, 85vw);
   background: var(--card);
-  z-index: 301;
-  transform: translateX(100%);
+  z-index: 9999;
+  transform: translateX(-100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 20px 18px;
   box-shadow: -6px 0 28px rgba(0, 0, 0, 0.16);

@@ -358,11 +358,22 @@ function App() {
             <Link to="/categoria/Deco" className="category-link">Deco</Link>
             <Link to="/categoria/Alfombras" className="category-link">Alfombras</Link>
             <Link to="/categoria/Cocina" className="category-link">Cocina</Link>
+
+            {isMabelMode && (
+              <div style={{display: 'flex', gap: '15px'}}>
+                <NavLink className="mabel-action-btn" to="/admin">
+                  Agregar producto
+                </NavLink>
+                <button className="mabel-action-btn" type="button" onClick={handleMabelLogout}>
+                  Salir modo Elina
+                </button>
+              </div>
+            )}
           </nav>
         </div>
 
         {isMabelMode && (
-          <div className="mabel-actions-row">
+          <div className="mabel-actions-row d-hide">
             <NavLink className="mabel-action-btn" to="/admin">
               Agregar producto
             </NavLink>

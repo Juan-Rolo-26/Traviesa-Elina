@@ -318,38 +318,36 @@ Adjunto el comprobante de pago.`
       )}
 
       {step === "transfer_success" && (
-        <div className="transfer-details-container success-like" style={{
-           maxWidth: '850px', margin: '40px auto', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
-        }}>
-           <div style={{ backgroundColor: '#fdfaf6', padding: '60px 20px', alignContent: 'center' }}>
-             <div style={{width: '64px', height: '64px', borderRadius: '50%', background: '#e8ece3', color: '#4a6b50', fontSize: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'}}>
-               <svg style={{width:'32px', height:'32px'}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <div className="transfer-success-wrapper">
+           <div className="transfer-success-top">
+             <div className="ts-circle">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
              </div>
-             <p style={{textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '11px', fontWeight: 'bold', color: '#888', marginBottom: '10px'}}>PEDIDO CONFIRMADO</p>
-             <h2 style={{fontFamily: 'serif', fontSize: '38px', textAlign: 'center', color: '#2c3e50', marginBottom: '20px'}}>Gracias por tu compra</h2>
-             <p style={{textAlign: 'center', color: '#666', fontSize: '15px', maxWidth: '650px', margin: '0 auto', lineHeight: '1.6'}}>
+             <p className="ts-subtitle">PEDIDO CONFIRMADO</p>
+             <h2 className="ts-title">Gracias por tu compra</h2>
+             <p className="ts-text">
                 {currentProfile?.customerName?.split(" ")[0] || currentProfile?.firstName || "Cliente"}, recibimos tu pedido y en breve nos comunicaremos para darte mas informacion sobre el estado, medios de pago y coordinacion de entrega.
              </p>
            </div>
            
-           <div style={{display: 'flex', gap: '20px', padding: '40px', borderTop: '1px solid #f0f0f0', flexWrap: 'wrap', backgroundColor: '#fff', alignItems: 'stretch'}}>
-              <div style={{flex: '1', minWidth: '280px', padding: '30px', border: '1px solid #eaeaea', borderRadius: '8px', background: '#fff', display: 'flex', flexDirection: 'column'}}>
-                 <p style={{textTransform: 'uppercase', fontSize: '11px', letterSpacing: '2px', fontWeight: 'bold', color: '#888', marginBottom: '15px'}}>NUMERO DE PEDIDO</p>
-                 <h3 style={{fontSize: '42px', color: '#c8a98a', fontWeight: '400', margin: '0 0 20px 0'}}>#{String(orderId).replace(/\D/g, '').slice(-5).padStart(5, String(orderId).slice(-1).toUpperCase() || 'A')}</h3>
-                 <p style={{fontSize: '14px', color: '#777', lineHeight: '1.6', marginTop: 'auto'}}>
+           <div className="transfer-success-bottom">
+              <div className="ts-card">
+                 <p className="ts-card-subtitle">NUMERO DE PEDIDO</p>
+                 <h3 className="ts-card-value">#{String(orderId).replace(/\D/g, '').slice(-5).padStart(5, String(orderId).slice(-1).toUpperCase() || 'A')}</h3>
+                 <p className="ts-card-text">
                    Guardalo para futuras consultas.<br/>
                    Tambien podremos identificar tu compra<br/>con este numero si nos escribis.
                  </p>
               </div>
 
-              <div style={{flex: '1', minWidth: '280px', padding: '30px', border: '1px solid #eaeaea', borderRadius: '8px', background: '#fff', display: 'flex', flexDirection: 'column'}}>
-                 <p style={{textTransform: 'uppercase', fontSize: '11px', letterSpacing: '2px', fontWeight: 'bold', color: '#888', marginBottom: '15px'}}>PROXIMO PASO</p>
-                 <p style={{fontSize: '14px', color: '#444', lineHeight: '1.6', marginBottom: '30px'}}>
+              <div className="ts-card">
+                 <p className="ts-card-subtitle">PROXIMO PASO</p>
+                 <p className="ts-card-text" style={{marginBottom: '30px'}}>
                    Nuestro equipo va a revisar tu pedido y te contactaremos para confirmar disponibilidad, formas de pago y envio.
                  </p>
-                 <div style={{marginTop: 'auto'}}>
-                   <Link to="/" onClick={onClear} style={{display: 'inline-block', background: '#c4a484', color: '#fff', textDecoration: 'none', padding: '14px 28px', borderRadius: '4px', fontWeight: '600', fontSize: '14px', transition: 'all 0.2s ease'}}>
-                      Seguir viendo productos <span style={{marginLeft:'5px'}}>→</span>
+                 <div className="ts-btn-wrap">
+                   <Link to="/" className="ts-btn">
+                      Seguir viendo productos <span>→</span>
                    </Link>
                  </div>
               </div>

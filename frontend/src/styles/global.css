@@ -4254,4 +4254,58 @@ input:checked + .slider:before {
     object-fit: cover !important;
     aspect-ratio: 1 / 1 !important;
   }
+
+  /* --- Cambios Transfer Success Mobile --- */
+  .transfer-success-wrapper { margin: 20px 10px !important; border-radius: 6px !important; }
+  .transfer-success-top { padding: 40px 15px !important; }
+  .ts-title { font-size: 32px !important; }
+  .ts-text { font-size: 14px !important; }
+  .transfer-success-bottom { padding: 20px 15px !important; gap: 15px !important; }
+  .ts-card { padding: 20px !important; min-width: 100% !important; }
+  .ts-card-value { font-size: 36px !important; }
+  .ts-btn { display: block !important; width: 100% !important; text-align: center !important; }
 }
+
+/* ---- TRANSFER SUCCESS DESKTOP (Defaults) ---- */
+.transfer-success-wrapper {
+  max-width: 850px; margin: 40px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+.transfer-success-top {
+  background-color: #fdfaf6; padding: 60px 20px; text-align: center;
+}
+.ts-circle {
+  width: 64px; height: 64px; border-radius: 50%; background: #e8ece3; color: #4a6b50; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+}
+.ts-circle svg { width: 32px; height: 32px; }
+.ts-subtitle {
+  text-transform: uppercase; letter-spacing: 2px; font-size: 11px; font-weight: bold; color: #888; margin-bottom: 10px;
+}
+.ts-title {
+  font-family: serif; font-size: 38px; color: #2c3e50; margin-bottom: 20px;
+}
+.ts-text {
+  color: #666; font-size: 15px; max-width: 650px; margin: 0 auto; line-height: 1.6;
+}
+.transfer-success-bottom {
+  display: flex; gap: 20px; padding: 40px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; background-color: #fff; align-items: stretch;
+}
+.ts-card {
+  flex: 1; min-width: 280px; padding: 30px; border: 1px solid #eaeaea; border-radius: 8px; background: #fff; display: flex; flex-direction: column;
+}
+.ts-card-subtitle {
+  text-transform: uppercase; font-size: 11px; letter-spacing: 2px; font-weight: bold; color: #888; margin-bottom: 15px;
+}
+.ts-card-value {
+  font-size: 42px; color: #c8a98a; font-weight: 400; margin: 0 0 20px 0;
+}
+.ts-card-text {
+  font-size: 14px; color: #777; line-height: 1.6; margin-top: auto;
+}
+.ts-btn-wrap {
+  margin-top: auto;
+}
+.ts-btn {
+  display: inline-block; background: #c4a484; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 4px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;
+}
+.ts-btn:hover { background: #b39373; color: #fff; }
+.ts-btn span { margin-left: 5px; }

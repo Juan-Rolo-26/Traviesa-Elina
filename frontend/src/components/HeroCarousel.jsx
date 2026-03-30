@@ -29,10 +29,18 @@ function HeroCarousel() {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [pauseUntil, setPauseUntil] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const resumeTimeoutRef = useRef(null);
   const slideRefs = useRef([]);
 
   const isPaused = pauseUntil > Date.now();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 920);
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (isPaused) return undefined;
@@ -61,7 +69,10 @@ function HeroCarousel() {
           if (playPromise?.catch) playPromise.catch(() => {});
         });
       } else {
-        videos.forEach(v => v.pause());
+        videos.forEach(v => {
+          v.pause();
+          v.currentTime = 0;
+        });
       }
     });
   }, [activeIndex]);
@@ -91,52 +102,46 @@ function HeroCarousel() {
   return (
     <section className="hero-carousel" aria-label="Promociones">
       <div className="hero-carousel-track">
-        {slides.map((slide, index) => (
-          <div
-            key={`${slide.type}-${slide.src}`}
-            className={`hero-carousel-slide ${activeIndex === index ? "active" : ""}`}
-            aria-hidden={activeIndex !== index}
-            ref={(el) => {
-              slideRefs.current[index] = el;
-            }}
-          >
-            {slide.type === "video" ? (
-              <>
-                <video
-                  className={`hero-carousel-media ${slide.mobileSrc ? 'm-hide' : ''}`}
-                  src={slide.src}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  onError={(event) => {
-                    if (!slide.fallbackSrc) return;
-                    const video = event.currentTarget;
-                    if (video.src?.includes(slide.fallbackSrc)) return;
-                    video.src = slide.fallbackSrc;
-                    video.load();
-                    const playPromise = video.play();
-                    if (playPromise?.catch) playPromise.catch(() => {});
-                  }}
-                />
-                {slide.mobileSrc && (
+        {slides.map((slide, index) => {
+          // Si estamos en mobile y existe el video de mobile, usamos ese. Si no, usamos el por defecto.
+          const actualVideoSrc = (isMobile && slide.mobileSrc) ? slide.mobileSrc : slide.src;
+
+          return (
+            <div
+              key={`${slide.type}-${slide.src}`}
+              className={`hero-carousel-slide ${activeIndex === index ? "active" : ""}`}
+              aria-hidden={activeIndex !== index}
+              ref={(el) => {
+                slideRefs.current[index] = el;
+              }}
+            >
+              {slide.type === "video" ? (
                   <video
-                    className="hero-carousel-media d-hide"
-                    src={slide.mobileSrc}
+                    key={isMobile ? "mobile" : "desktop"} // Force re-render to completely unload previous video buffer from memory if viewport changes
+                    className="hero-carousel-media"
+                    src={actualVideoSrc}
                     autoPlay
                     loop
                     muted
                     playsInline
                     preload="metadata"
+                    onError={(event) => {
+                      if (isMobile) return; // Si es mobile, no hay fallback registrado por defecto en el array, solo fallbacks para desktop right now
+                      if (!slide.fallbackSrc) return;
+                      const video = event.currentTarget;
+                      if (video.src?.includes(slide.fallbackSrc)) return;
+                      video.src = slide.fallbackSrc;
+                      video.load();
+                      const playPromise = video.play();
+                      if (playPromise?.catch) playPromise.catch(() => {});
+                    }}
                   />
-                )}
-              </>
-            ) : (
-              <img className="hero-carousel-media" src={slide.src} alt={slide.alt} />
-            )}
-          </div>
-        ))}
+              ) : (
+                <img className="hero-carousel-media" src={slide.src} alt={slide.alt} />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <button className="hero-carousel-arrow left" type="button" aria-label="Anterior" onClick={goPrev}>

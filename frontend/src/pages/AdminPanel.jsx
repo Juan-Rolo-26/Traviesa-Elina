@@ -60,8 +60,8 @@ function AdminPanel({ token, onLogout }) {
         const productMedia = (product.media || []).length
           ? [...product.media].sort((a, b) => a.position - b.position)
           : product.image
-          ? [{ url: product.image, type: "image", position: 0 }]
-          : [];
+            ? [{ url: product.image, type: "image", position: 0 }]
+            : [];
         const mapped = productMedia.map((item) => ({
           id: crypto.randomUUID(),
           file: null,
@@ -201,7 +201,11 @@ function AdminPanel({ token, onLogout }) {
     }
     const data = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== "" || key === "discountPrice" || key === "category" || key === "description") data.append(key, value);
+      if (key === "wholesaleOffers") {
+        data.append(key, JSON.stringify(value));
+      } else if (value !== "" || key === "discountPrice" || key === "category" || key === "description" || key === "isWholesale") {
+        data.append(key, value);
+      }
     });
 
     const existingMedia = media

@@ -36,7 +36,7 @@ function MabelAccess({ onUnlock }) {
           required
         />
         <button className="button" type="submit" disabled={loading}>
-          {loading ? "Verificando..." : "Activar modo Mabel"}
+          {loading ? "Verificando..." : "Activar modo Elina"}
         </button>
       </form>
       {error && <p className="auth-error">{error}</p>}

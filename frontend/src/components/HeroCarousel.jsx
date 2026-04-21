@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import promoDelMes2 from "../assets/hero/promo-del-mes-2.mp4";
 import armaTuPaquete2 from "../assets/hero/arma-tu-paquete-2.mp4";
-import promo20Off7 from "../assets/hero/20-off-7.mp4";
-import promo20OffFallback from "../assets/hero/20-off.mp4";
+
 import promoDelMesFallback from "../assets/hero/promo-del-mes.mp4";
 import blanqueriaYBazarVideo from "../assets/hero/blanqueria_y_bazar.mp4";
 import disenoSinTituloVideo from "../assets/hero/diseno_sin_titulo.mp4";
@@ -23,7 +22,6 @@ function HeroCarousel() {
     { type: "video", src: renovaTuCamaVideo, mobileSrc: renovaTuCamaMobileVideo, alt: "Renova tu cama", durationMs: 5000 },
     { type: "video", src: promoDelMes2, mobileSrc: promoDelMes2Mobile, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
     { type: "video", src: armaTuPaquete2, mobileSrc: armaTuPaquete2Mobile, alt: "Arma tu paquete 2", durationMs: 8000 },
-    { type: "video", src: promo20Off7, fallbackSrc: promo20OffFallback, alt: "Promo 20 por ciento off 7", durationMs: 8000 },
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);

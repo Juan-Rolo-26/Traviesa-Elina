@@ -9,7 +9,6 @@ import disenoSinTituloVideo from "../assets/hero/diseno_sin_titulo.mp4";
 import renovaTuCamaVideo from "../assets/hero/renova_tu_cama.mp4";
 import renovaTuCamaMobileVideo from "../assets/hero/renova_tu_cama_mobile.mp4";
 import blanqueriaYBazarMobile from "../assets/hero/blanqueria_y_bazar_mobile.mp4";
-import promo20Off7Mobile from "../assets/hero/20_off_7_mobile.mp4";
 import armaTuPaquete2Mobile from "../assets/hero/arma_tu_paquete_2_mobile.mp4";
 import promoDelMes2Mobile from "../assets/hero/promo_del_mes_2_mobile.mp4";
 import "../styles/HeroCarousel.css";
@@ -24,7 +23,7 @@ function HeroCarousel() {
     { type: "video", src: renovaTuCamaVideo, mobileSrc: renovaTuCamaMobileVideo, alt: "Renova tu cama", durationMs: 5000 },
     { type: "video", src: promoDelMes2, mobileSrc: promoDelMes2Mobile, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
     { type: "video", src: armaTuPaquete2, mobileSrc: armaTuPaquete2Mobile, alt: "Arma tu paquete 2", durationMs: 8000 },
-    { type: "video", src: promo20Off7, mobileSrc: promo20Off7Mobile, fallbackSrc: promo20OffFallback, alt: "Promo 20 por ciento off 7", durationMs: 8000 },
+    { type: "video", src: promo20Off7, fallbackSrc: promo20OffFallback, alt: "Promo 20 por ciento off 7", durationMs: 8000 },
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -66,7 +65,7 @@ function HeroCarousel() {
         videos.forEach(v => {
           v.currentTime = 0;
           const playPromise = v.play();
-          if (playPromise?.catch) playPromise.catch(() => {});
+          if (playPromise?.catch) playPromise.catch(() => { });
         });
       } else {
         videos.forEach(v => {
@@ -116,26 +115,26 @@ function HeroCarousel() {
               }}
             >
               {slide.type === "video" ? (
-                  <video
-                    key={isMobile ? "mobile" : "desktop"} // Force re-render to completely unload previous video buffer from memory if viewport changes
-                    className="hero-carousel-media"
-                    src={actualVideoSrc}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    onError={(event) => {
-                      if (isMobile) return; // Si es mobile, no hay fallback registrado por defecto en el array, solo fallbacks para desktop right now
-                      if (!slide.fallbackSrc) return;
-                      const video = event.currentTarget;
-                      if (video.src?.includes(slide.fallbackSrc)) return;
-                      video.src = slide.fallbackSrc;
-                      video.load();
-                      const playPromise = video.play();
-                      if (playPromise?.catch) playPromise.catch(() => {});
-                    }}
-                  />
+                <video
+                  key={isMobile ? "mobile" : "desktop"} // Force re-render to completely unload previous video buffer from memory if viewport changes
+                  className="hero-carousel-media"
+                  src={actualVideoSrc}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  onError={(event) => {
+                    if (isMobile) return; // Si es mobile, no hay fallback registrado por defecto en el array, solo fallbacks para desktop right now
+                    if (!slide.fallbackSrc) return;
+                    const video = event.currentTarget;
+                    if (video.src?.includes(slide.fallbackSrc)) return;
+                    video.src = slide.fallbackSrc;
+                    video.load();
+                    const playPromise = video.play();
+                    if (playPromise?.catch) playPromise.catch(() => { });
+                  }}
+                />
               ) : (
                 <img className="hero-carousel-media" src={slide.src} alt={slide.alt} />
               )}

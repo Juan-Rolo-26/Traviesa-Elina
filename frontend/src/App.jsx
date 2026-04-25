@@ -454,6 +454,7 @@ function App() {
             </div>
             <div className="footer-section">
               <h4>MEDIOS DE ENVÍO</h4>
+              <p className="footer-subtitle">Coordinamos todo por whatsapp</p>
               <div className="footer-logos">
                 <span className="fl-text">Andreani</span>
                 <span className="fl-text">Correo Argentino</span>
@@ -485,18 +486,10 @@ function App() {
                 <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.24 1.02l-2.2 2.2z" /></svg>
                 +54 9 3513 74-9655
               </p>
-              <p className="footer-contact-line">
-                <span style={{ marginRight: '4px' }}>›</span> Botón de arrepentimiento
-              </p>
+
             </div>
 
-            <div className="footer-section">
-              <h4>NEWSLETTER</h4>
-              <div className="footer-newsletter">
-                <input type="email" placeholder="Email" className="footer-newsletter-input" />
-                <button type="button" className="footer-newsletter-btn">SUSCRIBIRME</button>
-              </div>
-            </div>
+
           </div>
         </div>
         <div className="footer-bottom">

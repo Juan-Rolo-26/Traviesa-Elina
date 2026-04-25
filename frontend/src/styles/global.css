@@ -769,7 +769,8 @@ button {
 }
 
 .form textarea {
-  min-height: 80px;
+  min-height: 320px;
+  resize: vertical;
 }
 
 .helper {

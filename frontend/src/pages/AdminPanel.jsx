@@ -378,6 +378,7 @@ function AdminPanel({ token, onLogout }) {
             placeholder="Descripcion (opcional)"
             value={form.description}
             onChange={handleChange}
+            rows={15}
           />
         </div>
 

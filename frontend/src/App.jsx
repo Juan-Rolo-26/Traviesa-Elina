@@ -218,9 +218,9 @@ function App() {
         <div className="ml-top-bar">
           <div className="top-bar-container">
             <div className="top-bar-marquee">
-               <span className="top-bar-marquee-content">
-                  ¡Encontra lo mejor con nosotros! &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; 4% DE DESCUENTO PAGANDO CON TRANSFERENCIA
-               </span>
+              <span className="top-bar-marquee-content">
+                ¡Encontra lo mejor con nosotros! &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; 4% DE DESCUENTO PAGANDO CON TRANSFERENCIA
+              </span>
             </div>
           </div>
         </div>
@@ -312,7 +312,7 @@ function App() {
                 )}
               </div>
               <div className="ml-auth-mobile-icon d-hide">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{width: '26px', height: '26px'}}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: '26px', height: '26px' }}>
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
@@ -326,13 +326,13 @@ function App() {
                 to="/checkout"
                 aria-label="Mi carrito"
               >
-                <div className="m-hide" style={{display: 'flex', flexDirection: 'column'}}>
+                <div className="m-hide" style={{ display: 'flex', flexDirection: 'column' }}>
                   <div className="text-cart-title">Carrito ({lotCount})</div>
                   <div className="text-cart-total">{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(previewTotal)}</div>
                 </div>
-                
-                <div className="d-hide" style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{width: '26px', height: '26px'}}>
+
+                <div className="d-hide" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: '26px', height: '26px' }}>
                     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                     <line x1="3" y1="6" x2="21" y2="6" />
                     <path d="M16 10a4 4 0 0 1-8 0" />
@@ -360,7 +360,7 @@ function App() {
             <Link to="/categoria/Cocina" className="category-link">Cocina</Link>
 
             {isMabelMode && (
-              <div style={{display: 'flex', gap: '15px'}}>
+              <div style={{ display: 'flex', gap: '15px' }}>
                 <NavLink className="mabel-action-btn" to="/admin">
                   Agregar producto
                 </NavLink>
@@ -454,7 +454,7 @@ function App() {
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Deco" onClick={() => setDrawerOpen(false)}>Deco</NavLink>
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Alfombras" onClick={() => setDrawerOpen(false)}>Alfombras</NavLink>
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Cocina" onClick={() => setDrawerOpen(false)}>Cocina</NavLink>
-          <div style={{height: '1px', background: '#e0e0e0', margin: '15px 0'}} />
+          <div style={{ height: '1px', background: '#e0e0e0', margin: '15px 0' }} />
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/mis-compras" onClick={() => setDrawerOpen(false)}>Mis compras</NavLink>
         </nav>
       </aside>
@@ -471,6 +471,17 @@ function App() {
         }}
         showGuestOption={location.pathname === "/checkout" && !customerProfile}
       />
+
+      {/* Botón flotante WhatsApp */}
+      <a
+        href="https://wa.me/5493513749655?text=Hola%20buenas!%20Te%20consulto%20por...."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="whatsapp-float"
+        aria-label="Contactar por WhatsApp"
+      >
+        <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.004 0C7.164 0 .004 7.16.004 15.998c0 2.82.737 5.573 2.137 7.998L.015 32l8.2-2.15a15.94 15.94 0 007.79 1.985C24.843 31.835 32 24.675 32 15.998 32 7.16 24.843 0 16.004 0zm0 29.318a13.27 13.27 0 01-7.13-2.065l-.51-.305-5.29 1.388 1.41-5.155-.334-.53A13.27 13.27 0 012.52 15.998c0-7.44 6.046-13.48 13.484-13.48 7.44 0 13.48 6.04 13.48 13.48 0 7.442-6.04 13.32-13.48 13.32zm7.396-10.095c-.405-.203-2.398-1.184-2.77-1.32-.372-.134-.643-.2-.914.203-.27.405-1.047 1.32-1.285 1.59-.236.27-.474.304-.88.102-.405-.203-1.71-.63-3.26-2.01-1.205-1.074-2.018-2.4-2.254-2.806-.236-.405-.025-.624.178-.826.182-.182.405-.474.608-.71.203-.237.27-.406.406-.677.134-.27.067-.508-.034-.71-.1-.203-.914-2.203-1.252-3.014-.33-.793-.665-.686-.914-.698l-.778-.014a1.49 1.49 0 00-1.082.508c-.372.405-1.42 1.388-1.42 3.384 0 1.997 1.454 3.926 1.657 4.198.203.27 2.862 4.37 6.935 6.126.97.418 1.726.668 2.316.855.973.31 1.858.266 2.558.162.78-.117 2.398-.98 2.737-1.928.338-.948.338-1.76.236-1.928-.1-.17-.37-.27-.776-.474z" /></svg>
+      </a>
     </div>
   );
 }

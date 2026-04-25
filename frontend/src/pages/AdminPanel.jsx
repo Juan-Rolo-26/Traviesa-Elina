@@ -344,6 +344,7 @@ function AdminPanel({ token, onLogout }) {
             <option value="Deco">Deco</option>
             <option value="Alfombras">Alfombras</option>
             <option value="Cocina">Cocina</option>
+            <option value="Baño">Baño</option>
           </select>
 
           <div className="wholesale-toggle-section">

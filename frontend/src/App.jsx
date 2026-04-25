@@ -358,6 +358,7 @@ function App() {
             <Link to="/categoria/Deco" className="category-link">Deco</Link>
             <Link to="/categoria/Alfombras" className="category-link">Alfombras</Link>
             <Link to="/categoria/Cocina" className="category-link">Cocina</Link>
+            <Link to="/categoria/Baño" className="category-link">Baño</Link>
 
             {isMabelMode && (
               <div style={{ display: 'flex', gap: '15px' }}>
@@ -519,6 +520,7 @@ function App() {
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Deco" onClick={() => setDrawerOpen(false)}>Deco</NavLink>
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Alfombras" onClick={() => setDrawerOpen(false)}>Alfombras</NavLink>
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Cocina" onClick={() => setDrawerOpen(false)}>Cocina</NavLink>
+          <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/categoria/Baño" onClick={() => setDrawerOpen(false)}>Baño</NavLink>
           <div style={{ height: '1px', background: '#e0e0e0', margin: '15px 0' }} />
           <NavLink className={({ isActive }) => `ml-drawer-link${isActive ? ' active' : ''}`} to="/mis-compras" onClick={() => setDrawerOpen(false)}>Mis compras</NavLink>
         </nav>

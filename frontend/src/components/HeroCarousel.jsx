@@ -4,29 +4,11 @@ import "../styles/HeroCarousel.css";
 
 const AUTOPLAY_MS = 6000;
 const INTERACTION_PAUSE_MS = 8000;
-
-/* ── Hardcoded legacy slides (used as fallback when DB is empty) ── */
-import promoDelMes2 from "../assets/hero/promo-del-mes-2.mp4";
-import armaTuPaquete2 from "../assets/hero/arma-tu-paquete-2.mp4";
-import promoDelMesFallback from "../assets/hero/promo-del-mes.mp4";
-import blanqueriaYBazarVideo from "../assets/hero/blanqueria_y_bazar.mp4";
-import disenoSinTituloVideo from "../assets/hero/diseno_sin_titulo.mp4";
-import renovaTuCamaVideo from "../assets/hero/renova_tu_cama.mp4";
-import renovaTuCamaMobileVideo from "../assets/hero/renova_tu_cama_mobile.mp4";
-import blanqueriaYBazarMobile from "../assets/hero/blanqueria_y_bazar_mobile.mp4";
-import armaTuPaquete2Mobile from "../assets/hero/arma_tu_paquete_2_mobile.mp4";
-import promoDelMes2Mobile from "../assets/hero/promo_del_mes_2_mobile.mp4";
-
-const STATIC_SLIDES = [
-  { type: "video", src: blanqueriaYBazarVideo, mobileSrc: blanqueriaYBazarMobile, alt: "Blanqueria y bazar", durationMs: 5000 },
-  { type: "video", src: disenoSinTituloVideo, alt: "Diseño sin título", durationMs: 5000 },
-  { type: "video", src: renovaTuCamaVideo, mobileSrc: renovaTuCamaMobileVideo, alt: "Renova tu cama", durationMs: 5000 },
-  { type: "video", src: promoDelMes2, mobileSrc: promoDelMes2Mobile, fallbackSrc: promoDelMesFallback, alt: "Promo del mes 2", durationMs: AUTOPLAY_MS },
-  { type: "video", src: armaTuPaquete2, mobileSrc: armaTuPaquete2Mobile, alt: "Arma tu paquete 2", durationMs: 8000 },
-];
+const MAX_SLIDES = 10;
 
 function HeroCarousel({ isAdmin, mabelToken }) {
-  const [dbSlides, setDbSlides] = useState(null); // null = loading
+  const [slides, setSlides] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [pauseUntil, setPauseUntil] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -37,31 +19,24 @@ function HeroCarousel({ isAdmin, mabelToken }) {
 
   const isPaused = pauseUntil > Date.now();
 
-  // Load slides from API
+  /* ── Load slides from API ── */
   const loadSlides = useCallback(() => {
     fetchHeroSlides()
-      .then((data) => setDbSlides(data))
-      .catch(() => setDbSlides([]));
+      .then((data) => {
+        setSlides(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setSlides([]);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
     loadSlides();
   }, [loadSlides]);
 
-  // Determine which slides to show
-  const slides = React.useMemo(() => {
-    if (dbSlides === null) return STATIC_SLIDES; // loading, show static
-    if (dbSlides.length === 0) return STATIC_SLIDES; // empty DB, show static
-    return dbSlides.map((s) => ({
-      id: s.id,
-      type: s.type || "video",
-      src: s.url,
-      mobileSrc: s.mobileSrc || null,
-      alt: `Hero slide`,
-      durationMs: s.durationMs || AUTOPLAY_MS,
-    }));
-  }, [dbSlides]);
-
+  /* ── Responsive ── */
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 920);
     handleResize();
@@ -69,8 +44,9 @@ function HeroCarousel({ isAdmin, mabelToken }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  /* ── Autoplay ── */
   useEffect(() => {
-    if (isPaused) return undefined;
+    if (isPaused || slides.length === 0) return undefined;
     const durationMs = slides[activeIndex]?.durationMs || AUTOPLAY_MS;
     const timer = setTimeout(() => {
       setActiveIndex((prev) => (prev + 1) % slides.length);
@@ -85,6 +61,7 @@ function HeroCarousel({ isAdmin, mabelToken }) {
     []
   );
 
+  /* ── Play/pause videos on slide change ── */
   useEffect(() => {
     slideRefs.current.forEach((slideDiv, index) => {
       if (!slideDiv) return;
@@ -104,6 +81,7 @@ function HeroCarousel({ isAdmin, mabelToken }) {
     });
   }, [activeIndex]);
 
+  /* ── Navigation ── */
   const pauseAfterInteraction = () => {
     const until = Date.now() + INTERACTION_PAUSE_MS;
     setPauseUntil(until);
@@ -126,7 +104,7 @@ function HeroCarousel({ isAdmin, mabelToken }) {
     setActiveIndex(index);
   };
 
-  /* ── Admin handlers ── */
+  /* ── Admin: add slide ── */
   const handleAddSlide = () => {
     fileInputRef.current?.click();
   };
@@ -138,6 +116,7 @@ function HeroCarousel({ isAdmin, mabelToken }) {
     try {
       await uploadHeroSlide(file, mabelToken);
       loadSlides();
+      setActiveIndex(0); // go to the new slide (it's first)
     } catch (err) {
       alert("Error al subir: " + (err.message || err));
     } finally {
@@ -146,60 +125,63 @@ function HeroCarousel({ isAdmin, mabelToken }) {
     }
   };
 
+  /* ── Admin: delete current slide ── */
   const handleDeleteSlide = async () => {
     const current = slides[activeIndex];
     if (!current?.id || !mabelToken) return;
-    if (!window.confirm("¿Eliminar este slide del carrusel?")) return;
+    if (!window.confirm("¿Eliminar este flyer del carrusel?")) return;
     try {
       await deleteHeroSlide(current.id, mabelToken);
-      setActiveIndex(0);
+      setActiveIndex((prev) => Math.max(0, prev - 1));
       loadSlides();
     } catch (err) {
       alert("Error al eliminar: " + (err.message || err));
     }
   };
 
-  const isDbSlide = Boolean(slides[activeIndex]?.id);
+  /* ── Render ── */
+  if (loading || slides.length === 0) {
+    return (
+      <section className="hero-carousel" aria-label="Promociones">
+        <div className="hero-carousel-track" />
+      </section>
+    );
+  }
 
   return (
     <section className="hero-carousel" aria-label="Promociones">
       <div className="hero-carousel-track">
         {slides.map((slide, index) => {
-          const actualVideoSrc =
-            isMobile && slide.mobileSrc ? slide.mobileSrc : slide.src;
+          const videoSrc =
+            isMobile && slide.mobileSrc ? slide.mobileSrc : slide.url;
 
           return (
             <div
-              key={slide.id || `${slide.type}-${slide.src}`}
+              key={slide.id}
               className={`hero-carousel-slide ${activeIndex === index ? "active" : ""}`}
               aria-hidden={activeIndex !== index}
               ref={(el) => {
                 slideRefs.current[index] = el;
               }}
             >
-              {slide.type === "video" ? (
+              {(slide.type === "video") ? (
                 <video
                   key={isMobile ? "mobile" : "desktop"}
                   className="hero-carousel-media"
-                  src={actualVideoSrc}
+                  src={videoSrc}
                   autoPlay
                   loop
                   muted
                   playsInline
                   preload="metadata"
-                  onError={(event) => {
-                    if (isMobile) return;
-                    if (!slide.fallbackSrc) return;
-                    const video = event.currentTarget;
-                    if (video.src?.includes(slide.fallbackSrc)) return;
-                    video.src = slide.fallbackSrc;
-                    video.load();
-                    const playPromise = video.play();
-                    if (playPromise?.catch) playPromise.catch(() => { });
-                  }}
                 />
               ) : (
-                <img className="hero-carousel-media" src={slide.src} alt={slide.alt} />
+                <img
+                  className="hero-carousel-media"
+                  src={slide.url}
+                  alt="Hero slide"
+                  loading="lazy"
+                />
               )}
             </div>
           );
@@ -216,29 +198,29 @@ function HeroCarousel({ isAdmin, mabelToken }) {
       {/* ── Admin Controls ── */}
       {isAdmin && (
         <div className="hero-admin-controls">
-          <button
-            type="button"
-            className="hero-admin-btn hero-admin-add"
-            onClick={handleAddSlide}
-            disabled={uploading}
-            title="Agregar imagen o video"
-          >
-            {uploading ? (
-              <svg className="hero-admin-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="50" strokeLinecap="round" /></svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-            )}
-          </button>
-          {isDbSlide && (
+          {slides.length < MAX_SLIDES && (
             <button
               type="button"
-              className="hero-admin-btn hero-admin-delete"
-              onClick={handleDeleteSlide}
-              title="Eliminar este slide"
+              className="hero-admin-btn hero-admin-add"
+              onClick={handleAddSlide}
+              disabled={uploading}
+              title="Agregar imagen o video"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              {uploading ? (
+                <svg className="hero-admin-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="50" strokeLinecap="round" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              )}
             </button>
           )}
+          <button
+            type="button"
+            className="hero-admin-btn hero-admin-delete"
+            onClick={handleDeleteSlide}
+            title="Eliminar este flyer"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
           <input
             type="file"
             ref={fileInputRef}

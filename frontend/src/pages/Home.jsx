@@ -74,9 +74,29 @@ function Home({ onAdd, searchQuery, cart, isAdmin }) {
   };
 
   const normalizedQuery = normalizeSearchText(searchQuery);
-  const filteredProducts = normalizedQuery
-    ? products.filter((product) => matchesSearch(product.name, normalizedQuery))
-    : products;
+
+  const displayProducts = React.useMemo(() => {
+    if (normalizedQuery) {
+      // When searching, show all matching results
+      return products.filter((product) => matchesSearch(product.name, normalizedQuery));
+    }
+
+    // Homepage: sort by best discount first, cap at 25
+    const withDiscount = products
+      .filter((p) => p.discountPrice != null && p.discountPrice > 0 && p.price > p.discountPrice)
+      .map((p) => ({
+        ...p,
+        _discountPct: ((p.price - p.discountPrice) / p.price) * 100,
+      }))
+      .sort((a, b) => b._discountPct - a._discountPct);
+
+    const withoutDiscount = products.filter(
+      (p) => !(p.discountPrice != null && p.discountPrice > 0 && p.price > p.discountPrice)
+    );
+
+    const combined = [...withDiscount, ...withoutDiscount];
+    return combined.slice(0, 25);
+  }, [products, normalizedQuery]);
 
   return (
     <div>
@@ -93,12 +113,12 @@ function Home({ onAdd, searchQuery, cart, isAdmin }) {
       {loading && <p>Cargando productos...</p>}
       {error && <p className="helper">{error}</p>}
 
-      {!loading && filteredProducts.length === 0 && (
+      {!loading && displayProducts.length === 0 && (
         <p className="helper">La tienda esta vacia por ahora. Vuelve en unos dias.</p>
       )}
 
       <div className="grid home-grid">
-        {filteredProducts.map((product) => {
+        {displayProducts.map((product) => {
           const inCart = cart?.find((item) => item.productId === product.id);
           return (
             <ProductCard

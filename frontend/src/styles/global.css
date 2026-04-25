@@ -4762,13 +4762,13 @@ input:checked+.slider:before {
 }
 
 .footer-section h4 {
-  font-family: "Times New Roman", Times, serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.8px;
   color: #2c2c2c;
   margin: 0 0 12px 0;
-  font-style: italic;
+  font-style: normal;
 }
 
 .footer-subtitle {

@@ -387,7 +387,7 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<Home onAdd={addToCart} searchQuery={searchQuery} cart={cart} isAdmin={isMabelMode} />}
+          element={<Home onAdd={addToCart} searchQuery={searchQuery} cart={cart} isAdmin={isMabelMode} mabelToken={mabelToken} />}
         />
         <Route
           path="/categoria/:categoryName"

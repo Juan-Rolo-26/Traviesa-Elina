@@ -130,3 +130,13 @@ model SavedPaymentMethod {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model HeroSlide {
+  id         String   @id @default(cuid())
+  url        String
+  mobileSrc  String?
+  type       String   @default("video")
+  position   Int      @default(0)
+  durationMs Int      @default(6000)
+  createdAt  DateTime @default(now())
+}

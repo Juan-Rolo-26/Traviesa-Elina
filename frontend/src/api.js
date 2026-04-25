@@ -296,3 +296,40 @@ export async function fetchCustomerOrders(token) {
   }
   return res.json();
 }
+
+// ===== HERO SLIDES =====
+export async function fetchHeroSlides() {
+  const res = await fetch(`${API_URL}/api/hero-slides`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export async function uploadHeroSlide(file, token) {
+  const data = new FormData();
+  data.append("media", file);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_URL}/api/hero-slides`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: data,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return readError(res, "No se pudo subir el slide");
+    return res.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
+export async function deleteHeroSlide(id, token) {
+  const res = await fetch(`${API_URL}/api/hero-slides/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return readError(res, "No se pudo eliminar el slide");
+  return res.json();
+}

@@ -13,6 +13,7 @@ const mabelRoutes = require("./src/routes/mabel");
 const paymentRoutes = require("./src/routes/payments");
 const webhookRoutes = require("./src/routes/webhooks");
 const testRoutes = require("./src/routes/test");
+const heroSlideRoutes = require("./src/routes/heroSlides");
 
 const app = express();
 
@@ -90,6 +91,7 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/test", testRoutes);
+app.use("/api/hero-slides", heroSlideRoutes);
 
 const FRONTEND_DIST = path.join(__dirname, "frontend", "dist");
 

@@ -20,13 +20,11 @@
   right: 0;
   bottom: 0;
   height: clamp(64px, 11vw, 118px);
-  background: linear-gradient(
-    to bottom,
-    rgba(242, 242, 242, 0) 0%,
-    rgba(242, 242, 242, 0.08) 42%,
-    rgba(242, 242, 242, 0.34) 70%,
-    rgba(242, 242, 242, 0.82) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(242, 242, 242, 0) 0%,
+      rgba(242, 242, 242, 0.08) 42%,
+      rgba(242, 242, 242, 0.34) 70%,
+      rgba(242, 242, 242, 0.82) 100%);
   pointer-events: none;
   z-index: 2;
 }
@@ -123,5 +121,80 @@
 
   .hero-carousel-dots {
     bottom: 20px;
+  }
+}
+
+/* ===== Admin Controls ===== */
+.hero-admin-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 10px;
+  z-index: 5;
+}
+
+.hero-admin-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-admin-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.hero-admin-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.hero-admin-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.hero-admin-add {
+  background: rgba(255, 255, 255, 0.92);
+  color: #222;
+}
+
+.hero-admin-delete {
+  background: rgba(220, 53, 53, 0.9);
+  color: #fff;
+}
+
+.hero-admin-spinner {
+  animation: hero-spin 0.8s linear infinite;
+}
+
+@keyframes hero-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 920px) {
+  .hero-admin-controls {
+    top: 10px;
+    right: 10px;
+    gap: 8px;
+  }
+
+  .hero-admin-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .hero-admin-btn svg {
+    width: 18px;
+    height: 18px;
   }
 }

@@ -40,7 +40,7 @@ function matchesSearch(name, query) {
   });
 }
 
-function Home({ onAdd, searchQuery, cart, isAdmin }) {
+function Home({ onAdd, searchQuery, cart, isAdmin, mabelToken }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -101,7 +101,7 @@ function Home({ onAdd, searchQuery, cart, isAdmin }) {
   return (
     <div>
       {!normalizedQuery && (
-        <HeroCarousel />
+        <HeroCarousel isAdmin={isAdmin} mabelToken={mabelToken} />
       )}
 
       <section className="hero">

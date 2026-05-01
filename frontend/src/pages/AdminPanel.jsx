@@ -11,6 +11,8 @@ const initialState = {
   wholesaleOffers: [],
   stock: "1",
   description: "",
+  longDescription: "",
+  noLongDescription: false,
 };
 
 const GRID_COLS = 2;
@@ -56,6 +58,8 @@ function AdminPanel({ token, onLogout }) {
           wholesaleOffers: (product.wholesaleOffers || []).map((o) => ({ quantity: String(o.quantity), price: String(o.price) })),
           stock: String(product.stock ?? "1"),
           description: product.description || "",
+          longDescription: product.longDescription || "",
+          noLongDescription: !product.longDescription,
         });
         const productMedia = (product.media || []).length
           ? [...product.media].sort((a, b) => a.position - b.position)
@@ -160,6 +164,10 @@ function AdminPanel({ token, onLogout }) {
     Object.entries(form).forEach(([key, value]) => {
       if (key === "wholesaleOffers") {
         data.append(key, JSON.stringify(value));
+      } else if (key === "noLongDescription") {
+        // skip — se usa para controlar longDescription abajo
+      } else if (key === "longDescription") {
+        data.append(key, form.noLongDescription ? "" : value);
       } else if (value !== "" || key === "discountPrice" || key === "category" || key === "description" || key === "isWholesale") {
         data.append(key, value);
       }
@@ -203,6 +211,10 @@ function AdminPanel({ token, onLogout }) {
     Object.entries(form).forEach(([key, value]) => {
       if (key === "wholesaleOffers") {
         data.append(key, JSON.stringify(value));
+      } else if (key === "noLongDescription") {
+        // skip
+      } else if (key === "longDescription") {
+        data.append(key, form.noLongDescription ? "" : value);
       } else if (value !== "" || key === "discountPrice" || key === "category" || key === "description" || key === "isWholesale") {
         data.append(key, value);
       }
@@ -381,6 +393,28 @@ function AdminPanel({ token, onLogout }) {
             onChange={handleChange}
             rows={15}
           />
+
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Descripción larga:</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', marginBottom: '8px' }}>
+              <input
+                type="checkbox"
+                name="noLongDescription"
+                checked={form.noLongDescription}
+                onChange={handleChange}
+              />
+              No aplica
+            </label>
+            {!form.noLongDescription && (
+              <textarea
+                name="longDescription"
+                placeholder="Descripción completa del producto (aparece debajo de la imagen)"
+                value={form.longDescription}
+                onChange={handleChange}
+                rows={20}
+              />
+            )}
+          </div>
         </div>
 
         {/* Columna derecha (desktop) / Sección media (mobile): imágenes y videos */}

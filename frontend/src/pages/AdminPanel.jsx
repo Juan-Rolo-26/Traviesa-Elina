@@ -414,6 +414,7 @@ function AdminPanel({ token, onLogout }) {
                 value={form.longDescription}
                 onChange={handleChange}
                 rows={20}
+                maxLength={2600}
                 style={{ width: '100%', boxSizing: 'border-box' }}
               />
             )}

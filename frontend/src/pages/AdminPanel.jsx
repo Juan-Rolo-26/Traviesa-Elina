@@ -192,7 +192,7 @@ function AdminPanel({ token, onLogout }) {
       setMedia(mapped);
     } catch (error) {
       const msg = String(error.message || "").toLowerCase();
-      if (msg.includes("invalid") || msg.includes("missing mabel token")) {
+      if (msg.includes("missing mabel token") || msg.includes("invalid mabel token")) {
         onLogout?.();
       }
       setStatus(error.message);
@@ -245,7 +245,7 @@ function AdminPanel({ token, onLogout }) {
       setStatus("Producto actualizado.");
     } catch (error) {
       const msg = String(error.message || "").toLowerCase();
-      if (msg.includes("invalid") || msg.includes("missing mabel token")) {
+      if (msg.includes("missing mabel token") || msg.includes("invalid mabel token")) {
         onLogout?.();
       }
       setStatus(error.message);

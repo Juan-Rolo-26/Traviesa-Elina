@@ -392,7 +392,7 @@ function AdminPanel({ token, onLogout }) {
             placeholder="Descripcion (opcional)"
             value={form.description}
             onChange={handleChange}
-            rows={3}
+            rows={1}
           />
 
           <div style={{ marginTop: '12px' }}>

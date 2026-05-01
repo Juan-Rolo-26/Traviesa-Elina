@@ -407,6 +407,7 @@ function AdminPanel({ token, onLogout }) {
                 value={form.medidas}
                 onChange={handleChange}
                 maxLength={100}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             )}
           </div>

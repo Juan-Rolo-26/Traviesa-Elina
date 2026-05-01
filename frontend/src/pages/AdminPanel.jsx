@@ -386,12 +386,13 @@ function AdminPanel({ token, onLogout }) {
           )}
 
           <input name="stock" placeholder="Stock (default 1)" value={form.stock} onChange={handleChange} />
+          <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Descripción corta:</div>
           <textarea
             name="description"
             placeholder="Descripcion (opcional)"
             value={form.description}
             onChange={handleChange}
-            rows={5}
+            rows={3}
           />
 
           <div style={{ marginTop: '12px' }}>

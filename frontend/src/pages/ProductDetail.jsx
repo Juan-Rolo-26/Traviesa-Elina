@@ -176,6 +176,13 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
         </div>
       </div>
 
+      {product.longDescription && (
+        <section className="product-long-description">
+          <h3>Descripción completa</h3>
+          <p>{product.longDescription}</p>
+        </section>
+      )}
+
       {related.length > 0 && (
         <section className="related">
           <h3>Quienes vieron este producto también compraron</h3>

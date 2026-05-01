@@ -140,7 +140,7 @@ router.get("/:id", async (req, res) => {
 router.post("/", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
-    const { name, price, discountPrice, category, stock, description, isWholesale, wholesaleOffers } = req.body;
+    const { name, price, discountPrice, category, stock, description, longDescription, isWholesale, wholesaleOffers } = req.body;
     const files = req.files || [];
     if (!name || !price || files.length === 0) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -170,6 +170,7 @@ router.post("/", requireMabel, async (req, res) => {
         isWholesale: isWholesale === "true",
         stock: stock ? Number(stock) : 1,
         description: description || null,
+        longDescription: longDescription || null,
         image: cover?.url || "/uploads/placeholder.png",
         media: {
           create: mediaItems.map((item) => ({
@@ -204,7 +205,7 @@ router.put("/:id", requireMabel, async (req, res) => {
   try {
     await runUpload(req, res);
     const payload = {};
-    const { name, price, discountPrice, category, stock, description, isWholesale, wholesaleOffers, existingMedia } = req.body;
+    const { name, price, discountPrice, category, stock, description, longDescription, isWholesale, wholesaleOffers, existingMedia } = req.body;
 
     if (name) payload.name = name;
     if (price) payload.price = parsePriceToCents(price);
@@ -238,6 +239,7 @@ router.put("/:id", requireMabel, async (req, res) => {
 
     if (stock !== undefined) payload.stock = Number(stock);
     if (description !== undefined) payload.description = description || null;
+    if (longDescription !== undefined) payload.longDescription = longDescription || null;
 
     const providedExisting = existingMedia ? JSON.parse(existingMedia) : [];
     const newFiles = req.files || [];

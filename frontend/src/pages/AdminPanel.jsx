@@ -10,6 +10,8 @@ const initialState = {
   isWholesale: false,
   wholesaleOffers: [],
   stock: "1",
+  medidas: "",
+  noMedidas: false,
   description: "",
   longDescription: "",
   noLongDescription: false,
@@ -57,6 +59,8 @@ function AdminPanel({ token, onLogout }) {
           isWholesale: product.isWholesale || false,
           wholesaleOffers: (product.wholesaleOffers || []).map((o) => ({ quantity: String(o.quantity), price: String(o.price) })),
           stock: String(product.stock ?? "1"),
+          medidas: product.medidas || "",
+          noMedidas: !product.medidas,
           description: product.description || "",
           longDescription: product.longDescription || "",
           noLongDescription: !product.longDescription,
@@ -164,8 +168,10 @@ function AdminPanel({ token, onLogout }) {
     Object.entries(form).forEach(([key, value]) => {
       if (key === "wholesaleOffers") {
         data.append(key, JSON.stringify(value));
-      } else if (key === "noLongDescription") {
-        // skip — se usa para controlar longDescription abajo
+      } else if (key === "noMedidas" || key === "noLongDescription") {
+        // skip
+      } else if (key === "medidas") {
+        data.append(key, form.noMedidas ? "" : value);
       } else if (key === "longDescription") {
         data.append(key, form.noLongDescription ? "" : value);
       } else if (value !== "" || key === "discountPrice" || key === "category" || key === "description" || key === "isWholesale") {
@@ -211,8 +217,10 @@ function AdminPanel({ token, onLogout }) {
     Object.entries(form).forEach(([key, value]) => {
       if (key === "wholesaleOffers") {
         data.append(key, JSON.stringify(value));
-      } else if (key === "noLongDescription") {
+      } else if (key === "noMedidas" || key === "noLongDescription") {
         // skip
+      } else if (key === "medidas") {
+        data.append(key, form.noMedidas ? "" : value);
       } else if (key === "longDescription") {
         data.append(key, form.noLongDescription ? "" : value);
       } else if (value !== "" || key === "discountPrice" || key === "category" || key === "description" || key === "isWholesale") {
@@ -386,6 +394,23 @@ function AdminPanel({ token, onLogout }) {
           )}
 
           <input name="stock" placeholder="Stock (default 1)" value={form.stock} onChange={handleChange} />
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Medidas:</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', marginBottom: '6px' }}>
+              <input type="checkbox" name="noMedidas" checked={form.noMedidas} onChange={handleChange} />
+              No aplica
+            </label>
+            {!form.noMedidas && (
+              <input
+                name="medidas"
+                placeholder="Ej: 70x40 cm"
+                value={form.medidas}
+                onChange={handleChange}
+                maxLength={100}
+              />
+            )}
+          </div>
+
           <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Descripción corta:</div>
           <textarea
             name="description"

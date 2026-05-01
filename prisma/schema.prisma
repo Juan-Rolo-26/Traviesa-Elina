@@ -52,6 +52,7 @@ model Product {
   isWholesale   Boolean  @default(false)
   stock       Int      @default(1)
   image       String
+  medidas         String?
   description     String?  @db.Text
   longDescription String?  @db.Text
   createdAt   DateTime @default(now())

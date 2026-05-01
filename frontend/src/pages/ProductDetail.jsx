@@ -145,6 +145,7 @@ function ProductDetail({ onAdd, isMabelMode = false }) {
             </div>
           )}
 
+          {product.medidas && <p><strong>Medidas:</strong> {product.medidas}</p>}
           {product.description && <p>{product.description}</p>}
 
           <div className="detail-actions-row">

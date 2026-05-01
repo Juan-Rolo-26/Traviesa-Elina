@@ -391,7 +391,7 @@ function AdminPanel({ token, onLogout }) {
             placeholder="Descripcion (opcional)"
             value={form.description}
             onChange={handleChange}
-            rows={15}
+            rows={5}
           />
 
           <div style={{ marginTop: '12px' }}>
@@ -412,6 +412,7 @@ function AdminPanel({ token, onLogout }) {
                 value={form.longDescription}
                 onChange={handleChange}
                 rows={20}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             )}
           </div>

@@ -393,6 +393,7 @@ function AdminPanel({ token, onLogout }) {
             value={form.description}
             onChange={handleChange}
             rows={1}
+            style={{ height: '38px', resize: 'none', width: '100%', boxSizing: 'border-box' }}
           />
 
           <div style={{ marginTop: '12px' }}>
